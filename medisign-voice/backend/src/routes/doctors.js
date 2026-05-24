@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import Doctor from '../models/Doctor.js';
 import User from '../models/User.js';
 import { authenticate, authorize, attachUser } from '../middleware/auth.js';
@@ -76,24 +76,59 @@ router.post(
   }
 );
 
-router.put('/:id', authorize('admin'), async (req, res, next) => {
-  try {
-    const doctor = await Doctor.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    }).populate('wardIds');
-    if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
-    res.json(doctor);
-  } catch (err) {
-    next(err);
+router.put(
+  '/:id',
+  authorize('admin'),
+  [param('id').isMongoId()],
+  validate,
+  async (req, res, next) => {
+    try {
+      const allowed = [
+        'name',
+        'specialization',
+        'department',
+        'licenseNumber',
+        'wardIds',
+        'isOnDuty',
+      ];
+      const updates = {};
+      allowed.forEach((key) => {
+        if (req.body[key] !== undefined) updates[key] = req.body[key];
+      });
+      const doctor = await Doctor.findByIdAndUpdate(req.params.id, updates, {
+        new: true,
+        runValidators: true,
+      }).populate('wardIds');
+      if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+      if (updates.name !== undefined) {
+        await User.findByIdAndUpdate(doctor.userId, { name: updates.name });
+      }
+      await logAudit({
+        action: 'UPDATE',
+        entity: 'Doctor',
+        entityId: doctor._id,
+        userId: req.user.id,
+        ip: req.ip,
+      });
+      res.json(doctor);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 router.delete('/:id', authorize('admin'), async (req, res, next) => {
   try {
     const doctor = await Doctor.findByIdAndDelete(req.params.id);
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
     await User.findByIdAndUpdate(doctor.userId, { isActive: false });
+    await logAudit({
+      action: 'DELETE',
+      entity: 'Doctor',
+      entityId: doctor._id,
+      userId: req.user.id,
+      ip: req.ip,
+    });
     res.json({ message: 'Doctor deactivated' });
   } catch (err) {
     next(err);

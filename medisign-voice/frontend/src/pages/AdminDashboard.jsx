@@ -4,6 +4,7 @@ import StatCard from '../components/StatCard';
 import Table from '../components/Table';
 import Modal from '../components/Modal';
 import FormInput from '../components/FormInput';
+import VoiceTranscription from '../components/VoiceTranscription';
 import { api } from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { formatSriLankaDateTime } from '../utils/dateTime';
@@ -11,7 +12,7 @@ import { formatSriLankaDateTime } from '../utils/dateTime';
 const TABS = ['analytics', 'patients', 'doctors', 'templates', 'wards', 'logs'];
 
 export default function AdminDashboard({ showToast }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [tab, setTab] = useState('analytics');
   const [analytics, setAnalytics] = useState({});
   const [patients, setPatients] = useState([]);
@@ -54,6 +55,37 @@ export default function AdminDashboard({ showToast }) {
   const openCreate = (type) => {
     setForm({});
     setModal({ type, mode: 'create' });
+  };
+
+  const openEdit = (type, record) => {
+    let values;
+    if (type === 'patient') {
+      values = {
+        name: record.name,
+        roomNumber: record.roomNumber || '',
+        preferredLanguage: record.preferredLanguage || 'en',
+      };
+    } else if (type === 'doctor') {
+      values = {
+        name: record.name,
+        specialization: record.specialization || '',
+      };
+    } else if (type === 'template') {
+      values = {
+          key: record.key,
+          labelEn: record.label?.en || '',
+          messageEn: record.message?.en || '',
+          defaultUrgency: record.defaultUrgency,
+      };
+    } else {
+      values = {
+        name: record.name,
+        floor: record.floor || '',
+        capacity: record.capacity ?? '',
+      };
+    }
+    setForm(values);
+    setModal({ type, mode: 'edit', id: record._id });
   };
 
   const handleSave = async () => {
@@ -100,17 +132,18 @@ export default function AdminDashboard({ showToast }) {
     }
   };
 
-  const updateForm = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+  const updateForm = (key) => (e) =>
+    setForm((previous) => ({ ...previous, [key]: e.target.value }));
 
   return (
     <DashboardLayout
       sidebarItems={[
-        { to: '/admin', labelKey: 'analytics', icon: '📊', end: true },
-        { to: '/admin', labelKey: 'patients', icon: '🧑', onClick: () => setTab('patients') },
-        { to: '/admin', labelKey: 'doctors', icon: '👨‍⚕️', onClick: () => setTab('doctors') },
-        { to: '/admin', labelKey: 'templates', icon: '📝', onClick: () => setTab('templates') },
-        { to: '/admin', labelKey: 'wards', icon: '🏥', onClick: () => setTab('wards') },
-        { to: '/admin', labelKey: 'logs', icon: '📜', onClick: () => setTab('logs') },
+        { to: '/admin', labelKey: 'analytics', icon: '📊', active: tab === 'analytics', onClick: () => setTab('analytics') },
+        { to: '/admin', labelKey: 'patients', icon: '🧑', active: tab === 'patients', onClick: () => setTab('patients') },
+        { to: '/admin', labelKey: 'doctors', icon: '👨‍⚕️', active: tab === 'doctors', onClick: () => setTab('doctors') },
+        { to: '/admin', labelKey: 'templates', icon: '📝', active: tab === 'templates', onClick: () => setTab('templates') },
+        { to: '/admin', labelKey: 'wards', icon: '🏥', active: tab === 'wards', onClick: () => setTab('wards') },
+        { to: '/admin', labelKey: 'logs', icon: '📜', active: tab === 'logs', onClick: () => setTab('logs') },
       ]}
     >
       <header className="page-header admin-header">
@@ -172,13 +205,14 @@ export default function AdminDashboard({ showToast }) {
                 key: 'actions',
                 label: t('actions'),
                 render: (r) => (
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => handleDelete('patient', r._id)}
-                  >
-                    {t('delete')}
-                  </button>
+                  <div className="table-actions">
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => openEdit('patient', r)}>
+                      {t('edit')}
+                    </button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => handleDelete('patient', r._id)}>
+                      {t('delete')}
+                    </button>
+                  </div>
                 ),
               },
             ]}
@@ -204,13 +238,14 @@ export default function AdminDashboard({ showToast }) {
                 key: 'actions',
                 label: t('actions'),
                 render: (r) => (
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => handleDelete('doctor', r._id)}
-                  >
-                    {t('delete')}
-                  </button>
+                  <div className="table-actions">
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => openEdit('doctor', r)}>
+                      {t('edit')}
+                    </button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => handleDelete('doctor', r._id)}>
+                      {t('delete')}
+                    </button>
+                  </div>
                 ),
               },
             ]}
@@ -233,6 +268,20 @@ export default function AdminDashboard({ showToast }) {
               { key: 'key', label: 'Key', render: (r) => r.key },
               { key: 'label', label: 'Label', render: (r) => r.label?.en },
               { key: 'urgency', label: t('urgency'), render: (r) => r.defaultUrgency },
+              {
+                key: 'actions',
+                label: t('actions'),
+                render: (r) => (
+                  <div className="table-actions">
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => openEdit('template', r)}>
+                      {t('edit')}
+                    </button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => handleDelete('template', r._id)}>
+                      {t('delete')}
+                    </button>
+                  </div>
+                ),
+              },
             ]}
             data={templates}
             emptyMessage={t('noData')}
@@ -253,6 +302,20 @@ export default function AdminDashboard({ showToast }) {
               { key: 'name', label: t('name'), render: (r) => r.name },
               { key: 'floor', label: 'Floor', render: (r) => r.floor },
               { key: 'capacity', label: 'Capacity', render: (r) => r.capacity },
+              {
+                key: 'actions',
+                label: t('actions'),
+                render: (r) => (
+                  <div className="table-actions">
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => openEdit('ward', r)}>
+                      {t('edit')}
+                    </button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => handleDelete('ward', r._id)}>
+                      {t('delete')}
+                    </button>
+                  </div>
+                ),
+              },
             ]}
             data={wards}
             emptyMessage={t('noData')}
@@ -292,25 +355,35 @@ export default function AdminDashboard({ showToast }) {
         {modal?.type === 'patient' && (
           <>
             <FormInput label={t('name')} value={form.name || ''} onChange={updateForm('name')} />
-            <FormInput label={t('email')} value={form.email || ''} onChange={updateForm('email')} />
+            {modal.mode === 'create' && (
+              <>
+                <FormInput label={t('email')} value={form.email || ''} onChange={updateForm('email')} />
+                <FormInput label={t('password')} type="password" value={form.password || ''} onChange={updateForm('password')} />
+              </>
+            )}
+            <FormInput label={t('wardRoom')} value={form.roomNumber || ''} onChange={updateForm('roomNumber')} />
             <FormInput
-              label={t('password')}
-              type="password"
-              value={form.password || ''}
-              onChange={updateForm('password')}
+              label={t('preferredLanguage')}
+              as="select"
+              value={form.preferredLanguage || 'en'}
+              onChange={updateForm('preferredLanguage')}
+              options={[
+                { value: 'en', label: 'English' },
+                { value: 'ta', label: 'Tamil' },
+                { value: 'si', label: 'Sinhala' },
+              ]}
             />
           </>
         )}
         {modal?.type === 'doctor' && (
           <>
             <FormInput label={t('name')} value={form.name || ''} onChange={updateForm('name')} />
-            <FormInput label={t('email')} value={form.email || ''} onChange={updateForm('email')} />
-            <FormInput
-              label={t('password')}
-              type="password"
-              value={form.password || ''}
-              onChange={updateForm('password')}
-            />
+            {modal.mode === 'create' && (
+              <>
+                <FormInput label={t('email')} value={form.email || ''} onChange={updateForm('email')} />
+                <FormInput label={t('password')} type="password" value={form.password || ''} onChange={updateForm('password')} />
+              </>
+            )}
             <FormInput
               label="Specialization"
               value={form.specialization || ''}
@@ -340,8 +413,31 @@ export default function AdminDashboard({ showToast }) {
             />
             <FormInput
               label="Message (EN)"
+              as="textarea"
               value={form.messageEn || ''}
               onChange={updateForm('messageEn')}
+              rows={3}
+            />
+            <VoiceTranscription
+              onTranscript={(transcript) =>
+                setForm((previous) => ({
+                  ...previous,
+                  messageEn: `${previous.messageEn?.trim() || ''} ${transcript}`.trim(),
+                }))
+              }
+              language={lang}
+              showToast={showToast}
+            />
+            <FormInput
+              label={t('urgency')}
+              as="select"
+              value={form.defaultUrgency || 'Warning'}
+              onChange={updateForm('defaultUrgency')}
+              options={[
+                { value: 'Normal', label: t('normal') },
+                { value: 'Warning', label: t('warning') },
+                { value: 'Emergency', label: t('emergency') },
+              ]}
             />
           </>
         )}

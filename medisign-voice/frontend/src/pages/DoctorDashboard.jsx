@@ -3,20 +3,22 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import RequestCard from '../components/RequestCard';
 import Modal from '../components/Modal';
 import FormInput from '../components/FormInput';
+import VoiceTranscription from '../components/VoiceTranscription';
 import { api } from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { playAlertSound } from '../utils/voice';
 
 export default function DoctorDashboard({ showToast }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [noteModal, setNoteModal] = useState(null);
   const [noteText, setNoteText] = useState('');
-  const lastEmergencyCount = useRef(0);
+  const pendingRequestIds = useRef(new Set());
+  const hasLoadedRequests = useRef(false);
 
   const sidebarItems = [
     { to: '/doctor', labelKey: 'dashboard', icon: '🩺', end: true },
@@ -30,15 +32,24 @@ export default function DoctorDashboard({ showToast }) {
         if (['Normal', 'Warning', 'Emergency'].includes(filter)) params.urgency = filter;
         else params.status = filter;
       }
-      const data = await api.requests.list(params);
-      const emergencyPending = data.filter(
-        (r) => r.urgency === 'Emergency' && r.status === 'pending'
-      ).length;
-      if (emergencyPending > lastEmergencyCount.current) {
+      const [data, pendingData] = await Promise.all([
+        api.requests.list(params),
+        filter === 'all' ? Promise.resolve(null) : api.requests.list({ status: 'pending' }),
+      ]);
+      const pending = (pendingData || data).filter((request) => request.status === 'pending');
+      const newRequests = hasLoadedRequests.current
+        ? pending.filter((request) => !pendingRequestIds.current.has(request._id))
+        : [];
+      if (newRequests.length) {
+        const hasEmergency = newRequests.some((request) => request.urgency === 'Emergency');
         playAlertSound();
-        showToast?.('🚨 New emergency patient request!', 'error');
+        showToast?.(
+          hasEmergency ? '🚨 New emergency patient request!' : 'New patient request received!',
+          hasEmergency ? 'error' : 'success'
+        );
       }
-      lastEmergencyCount.current = emergencyPending;
+      pendingRequestIds.current = new Set(pending.map((request) => request._id));
+      hasLoadedRequests.current = true;
       setRequests(data);
     } catch (err) {
       showToast?.(err.message, 'error');
@@ -49,7 +60,7 @@ export default function DoctorDashboard({ showToast }) {
 
   useEffect(() => {
     loadRequests();
-    const interval = setInterval(loadRequests, 8000);
+    const interval = setInterval(loadRequests, 3000);
     return () => clearInterval(interval);
   }, [loadRequests]);
 
@@ -64,7 +75,10 @@ export default function DoctorDashboard({ showToast }) {
   };
 
   const handleSaveNote = async () => {
-    if (!noteText.trim() || !noteModal) return;
+    if (!noteText.trim() || !noteModal) {
+      showToast?.('Enter or dictate a medical note before saving.', 'error');
+      return;
+    }
     try {
       await api.notes.create({
         requestId: noteModal._id,
@@ -125,6 +139,13 @@ export default function DoctorDashboard({ showToast }) {
           value={noteText}
           onChange={(e) => setNoteText(e.target.value)}
           rows={4}
+        />
+        <VoiceTranscription
+          onTranscript={(transcript) =>
+            setNoteText((previous) => `${previous.trim()} ${transcript}`.trim())
+          }
+          language={lang}
+          showToast={showToast}
         />
         <div className="modal-actions">
           <button type="button" className="btn btn-ghost" onClick={() => setNoteModal(null)}>

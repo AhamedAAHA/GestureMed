@@ -5,8 +5,9 @@ import { authenticate, authorize, attachUser } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 
 const router = Router();
+router.use(authenticate, attachUser);
 
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const wards = await Ward.find({ isActive: true }).sort({ name: 1 });
     res.json(wards);
@@ -17,7 +18,6 @@ router.get('/', authenticate, async (req, res, next) => {
 
 router.post(
   '/',
-  authenticate,
   authorize('admin'),
   [body('name').trim().notEmpty()],
   validate,
@@ -31,7 +31,7 @@ router.post(
   }
 );
 
-router.put('/:id', authenticate, authorize('admin'), async (req, res, next) => {
+router.put('/:id', authorize('admin'), async (req, res, next) => {
   try {
     const ward = await Ward.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -44,7 +44,7 @@ router.put('/:id', authenticate, authorize('admin'), async (req, res, next) => {
   }
 });
 
-router.delete('/:id', authenticate, authorize('admin'), async (req, res, next) => {
+router.delete('/:id', authorize('admin'), async (req, res, next) => {
   try {
     const ward = await Ward.findByIdAndUpdate(
       req.params.id,

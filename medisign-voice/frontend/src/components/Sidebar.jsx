@@ -11,7 +11,9 @@ export default function Sidebar({ items }) {
           <NavLink
             key={`${item.to}-${item.labelKey}`}
             to={item.to}
-            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            className={({ isActive }) =>
+              `sidebar-link ${(item.active ?? isActive) ? 'active' : ''}`
+            }
             end={item.end}
             onClick={item.onClick}
           >

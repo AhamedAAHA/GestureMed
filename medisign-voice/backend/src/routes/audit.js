@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import AuditLog from '../models/AuditLog.js';
-import { authenticate, authorize } from '../middleware/auth.js';
+import { authenticate, authorize, attachUser } from '../middleware/auth.js';
 
 const router = Router();
 
-router.get('/', authenticate, authorize('admin'), async (req, res, next) => {
+router.get('/', authenticate, attachUser, authorize('admin'), async (req, res, next) => {
   try {
     const logs = await AuditLog.find()
       .populate('userId', 'name email role')

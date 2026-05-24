@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, attachUser } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { generateSpeech } from '../services/elevenLabsService.js';
 
 const router = Router();
-router.use(authenticate);
+router.use(authenticate, attachUser);
 
 router.post(
   '/generate',

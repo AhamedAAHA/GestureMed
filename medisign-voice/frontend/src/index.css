@@ -104,12 +104,43 @@ a {
 .navbar-brand {
   display: flex;
   align-items: center;
+  gap: 0.7rem;
+  color: var(--text);
 }
 
-.brand-logo {
+.brand-mark {
   display: block;
-  width: clamp(205px, 26vw, 250px);
-  height: auto;
+  width: 58px;
+  height: 58px;
+}
+
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1;
+}
+
+.brand-name {
+  color: #0284c7;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+
+.brand-name span {
+  color: #059669;
+  font-weight: 700;
+}
+
+.brand-tagline {
+  margin-top: 0.32rem;
+  color: var(--text-muted);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .navbar-actions {
@@ -716,6 +747,35 @@ a {
   margin-top: 1rem;
 }
 
+.transcription-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.btn-transcribe {
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--accent);
+}
+
+.btn-transcribe::before {
+  content: '\1F399';
+}
+
+.btn-transcribe.listening {
+  border-color: var(--danger);
+  background: rgba(220, 38, 38, 0.14);
+  color: var(--danger);
+}
+
+.transcription-status {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
 .preview-box {
   margin-top: 1rem;
   padding: 1rem;
@@ -1031,6 +1091,11 @@ a {
   background: rgba(14, 165, 233, 0.05);
 }
 
+.table-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
 .empty-state {
   text-align: center;
   padding: 2rem;
@@ -1152,6 +1217,15 @@ a {
   .navbar {
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  .brand-mark {
+    width: 50px;
+    height: 50px;
+  }
+
+  .brand-name {
+    font-size: 1.45rem;
   }
 
   .emergency-grid {

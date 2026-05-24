@@ -3,6 +3,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import EmergencyButton from '../components/EmergencyButton';
 import VoicePlayer from '../components/VoicePlayer';
 import UrgencyBadge from '../components/UrgencyBadge';
+import VoiceTranscription from '../components/VoiceTranscription';
 import { api } from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -11,11 +12,41 @@ import { formatSriLankaDateTime } from '../utils/dateTime';
 
 const SIGNS = ['pain', 'chest', 'breathing', 'doctor', 'help'];
 const LIVE_GESTURES = {
-  Closed_Fist: { sign: 'pain', label: 'Closed fist', icon: '✊' },
-  Thumb_Down: { sign: 'chest', label: 'Thumb down', icon: '👎' },
-  Victory: { sign: 'breathing', label: 'Victory sign', icon: '✌️' },
-  Thumb_Up: { sign: 'doctor', label: 'Thumb up', icon: '👍' },
-  Open_Palm: { sign: 'help', label: 'Open palm', icon: '✋' },
+  Closed_Fist: {
+    sign: 'pain',
+    label: 'Closed fist',
+    icon: '✊',
+    message: 'I am in pain and need assistance.',
+    urgency: 'Warning',
+  },
+  Thumb_Down: {
+    sign: 'chest',
+    label: 'Thumb down',
+    icon: '👎',
+    message: 'I have chest pain and need urgent assistance.',
+    urgency: 'Emergency',
+  },
+  Victory: {
+    sign: 'breathing',
+    label: 'Victory sign',
+    icon: '✌️',
+    message: 'I am having difficulty breathing. Please assist urgently.',
+    urgency: 'Emergency',
+  },
+  Thumb_Up: {
+    sign: 'doctor',
+    label: 'Thumb up',
+    icon: '👍',
+    message: 'I need a doctor or nurse.',
+    urgency: 'Warning',
+  },
+  Open_Palm: {
+    sign: 'help',
+    label: 'Open palm',
+    icon: '✋',
+    message: 'Help. I need assistance.',
+    urgency: 'Warning',
+  },
 };
 const HAND_CONNECTIONS = [
   [0, 1], [1, 2], [2, 3], [3, 4],
@@ -27,12 +58,12 @@ const HAND_CONNECTIONS = [
 const GESTURE_CONFIDENCE = 0.65;
 const GESTURE_HOLD_MS = 650;
 const EMERGENCY_KEYS = [
-  { key: 'chest_pain', labelKey: 'chestPain', icon: '❤️', variant: 'danger' },
-  { key: 'breathing', labelKey: 'breathing', icon: '🫁', variant: 'danger' },
-  { key: 'bleeding', labelKey: 'bleeding', icon: '🩸', variant: 'danger' },
-  { key: 'water', labelKey: 'water', icon: '💧', variant: 'default' },
-  { key: 'doctor', labelKey: 'needDoctor', icon: '👨‍⚕️', variant: 'warning' },
-  { key: 'family', labelKey: 'callFamily', icon: '📞', variant: 'default' },
+  { key: 'chest_pain', labelKey: 'chestPain', icon: '❤️', variant: 'danger', urgency: 'Emergency' },
+  { key: 'breathing', labelKey: 'breathing', icon: '🫁', variant: 'danger', urgency: 'Emergency' },
+  { key: 'bleeding', labelKey: 'bleeding', icon: '🩸', variant: 'danger', urgency: 'Emergency' },
+  { key: 'water', labelKey: 'water', icon: '💧', variant: 'default', urgency: 'Normal' },
+  { key: 'doctor', labelKey: 'needDoctor', icon: '👨‍⚕️', variant: 'warning', urgency: 'Warning' },
+  { key: 'family', labelKey: 'callFamily', icon: '📞', variant: 'default', urgency: 'Normal' },
 ];
 
 export default function PatientDashboard({ showToast }) {
@@ -49,6 +80,7 @@ export default function PatientDashboard({ showToast }) {
   const [liveGesture, setLiveGesture] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const gestureSendingRef = useRef(false);
 
   const sidebarItems = [
     { to: '/patient', labelKey: 'dashboard', icon: '🏠', end: true },
@@ -71,9 +103,37 @@ export default function PatientDashboard({ showToast }) {
     return () => clearInterval(interval);
   }, [loadData]);
 
-  const addDetectedSign = useCallback((sign) => {
-    setSelectedSigns((prev) => (prev.includes(sign) ? prev : [...prev, sign]));
-  }, []);
+  const submitDetectedGesture = useCallback(async (gesture) => {
+    if (gestureSendingRef.current) return;
+    gestureSendingRef.current = true;
+    setLoading(true);
+    setSelectedSigns([gesture.sign]);
+    setPreview(null);
+    try {
+      const created = await api.requests.create({
+        rawMessage: gesture.message,
+        language: lang,
+        source: 'sign',
+        detectedSigns: [gesture.sign],
+        urgency: gesture.urgency,
+      });
+      if (created.urgency === 'Emergency') {
+        setEmergencyFlash(true);
+        playAlertSound();
+        setTimeout(() => setEmergencyFlash(false), 5000);
+        showToast?.(`${gesture.label} detected. Emergency alert sent to doctor.`, 'error');
+      } else {
+        showToast?.(`${gesture.label} detected. Request sent to doctor.`, 'success');
+      }
+      setSelectedSigns([]);
+      loadData();
+    } catch (err) {
+      showToast?.(err.message, 'error');
+    } finally {
+      gestureSendingRef.current = false;
+      setLoading(false);
+    }
+  }, [lang, loadData, showToast]);
 
   useEffect(() => {
     let stream;
@@ -134,7 +194,7 @@ export default function PatientDashboard({ showToast }) {
       }
 
       if (!stableGesture.accepted && timestamp - stableGesture.since >= GESTURE_HOLD_MS) {
-        addDetectedSign(matched.sign);
+        submitDetectedGesture(matched);
         stableGesture.accepted = true;
       }
     }
@@ -212,12 +272,16 @@ export default function PatientDashboard({ showToast }) {
       recognizer?.close();
       stream?.getTracks().forEach((track) => track.stop());
     };
-  }, [addDetectedSign]);
+  }, [submitDetectedGesture]);
 
-  const toggleSign = (sign) => {
-    setSelectedSigns((prev) =>
-      prev.includes(sign) ? prev.filter((s) => s !== sign) : [...prev, sign]
-    );
+  const sendManualGesture = (sign) => {
+    const gesture = Object.values(LIVE_GESTURES).find((item) => item.sign === sign);
+    if (gesture) submitDetectedGesture(gesture);
+  };
+
+  const appendTranscript = (transcript) => {
+    setText((previous) => `${previous.trim()} ${transcript}`.trim());
+    setPreview(null);
   };
 
   const buildRawMessage = () => {
@@ -266,7 +330,10 @@ export default function PatientDashboard({ showToast }) {
 
   const handleSend = () => {
     const rawMessage = preview?.improved || buildRawMessage();
-    if (!rawMessage) return;
+    if (!rawMessage) {
+      showToast?.('Enter text, speak, or select signs before sending.', 'error');
+      return;
+    }
     submitRequest({
       rawMessage: buildRawMessage() || rawMessage,
       language: lang,
@@ -327,8 +394,8 @@ export default function PatientDashboard({ showToast }) {
 
           <h4>Live Gesture Shortcuts</h4>
           <p className="gesture-help">
-            Hold a pose briefly to add its medical message. These are predefined shortcuts,
-            not full sign-language translation.
+            Hold a pose briefly to send its medical message directly to the doctor. These
+            are predefined shortcuts, not full sign-language translation.
           </p>
           <div className="gesture-guide">
             {Object.values(LIVE_GESTURES).map((gesture) => (
@@ -339,14 +406,15 @@ export default function PatientDashboard({ showToast }) {
             ))}
           </div>
 
-          <h4 className="manual-sign-heading">Manual Selection</h4>
+          <h4 className="manual-sign-heading">Manual Gesture Shortcuts</h4>
           <div className="sign-buttons">
             {SIGNS.map((sign) => (
               <button
                 key={sign}
                 type="button"
                 className={`sign-chip ${selectedSigns.includes(sign) ? 'active' : ''}`}
-                onClick={() => toggleSign(sign)}
+                onClick={() => sendManualGesture(sign)}
+                disabled={loading}
               >
                 {t(sign) || sign}
               </button>
@@ -370,6 +438,7 @@ export default function PatientDashboard({ showToast }) {
                   label={t(btn.labelKey)}
                   icon={btn.icon}
                   variant={btn.variant}
+                  disabled={loading}
                   onClick={() =>
                     template
                       ? handleTemplate(template)
@@ -377,6 +446,7 @@ export default function PatientDashboard({ showToast }) {
                           rawMessage: t(btn.labelKey),
                           language: lang,
                           source: 'template',
+                          urgency: btn.urgency,
                         })
                   }
                 />
@@ -388,6 +458,7 @@ export default function PatientDashboard({ showToast }) {
             type="button"
             className="btn btn-danger btn-block emergency-alert-btn"
             onClick={handleEmergencyAlert}
+            disabled={loading}
           >
             🚨 {t('emergencyAlert')}
           </button>
@@ -398,9 +469,18 @@ export default function PatientDashboard({ showToast }) {
           <textarea
             className="form-input message-textarea"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setPreview(null);
+            }}
             placeholder="pain chest breathing hard"
             rows={4}
+          />
+          <VoiceTranscription
+            onTranscript={appendTranscript}
+            language={lang}
+            disabled={loading}
+            showToast={showToast}
           />
 
           {preview && (

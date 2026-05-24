@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 270" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 342" role="img" aria-labelledby="title desc">
   <title id="title">GestureMed</title>
   <desc id="desc">AI Powered Care, Human Touch</desc>
   <defs>
@@ -42,8 +42,8 @@
     <path d="M392 31v35M375 48h35" stroke="url(#teal)" stroke-width="10"/>
   </g>
 
-  <text x="34" y="230" fill="#38bdf8" font-family="'Outfit', 'Arial', sans-serif" font-size="62" font-weight="650" letter-spacing="-1">Gesture</text>
-  <text x="274" y="230" fill="#34d399" font-family="'Outfit', 'Arial', sans-serif" font-size="62" font-weight="700">Med</text>
-  <path d="M35 253h32M520 253h33" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/>
-  <text x="80" y="258" fill="#94a3b8" font-family="'DM Sans', 'Arial', sans-serif" font-size="16" font-weight="600" letter-spacing="2.2">AI POWERED CARE, HUMAN TOUCH</text>
+  <text x="34" y="292" fill="#38bdf8" font-family="'Outfit', 'Arial', sans-serif" font-size="62" font-weight="650" letter-spacing="-1">Gesture</text>
+  <text x="274" y="292" fill="#34d399" font-family="'Outfit', 'Arial', sans-serif" font-size="62" font-weight="700">Med</text>
+  <path d="M35 319h32M520 319h33" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/>
+  <text x="80" y="324" fill="#94a3b8" font-family="'DM Sans', 'Arial', sans-serif" font-size="16" font-weight="600" letter-spacing="2.2">AI POWERED CARE, HUMAN TOUCH</text>
 </svg>

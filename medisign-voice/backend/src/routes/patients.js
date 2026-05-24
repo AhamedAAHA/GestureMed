@@ -122,10 +122,13 @@ router.put(
       });
       await patient.save();
 
-      if (req.body.preferredLanguage) {
-        await User.findByIdAndUpdate(patient.userId, {
-          preferredLanguage: req.body.preferredLanguage,
-        });
+      const userUpdates = {};
+      if (req.body.name !== undefined) userUpdates.name = req.body.name;
+      if (req.body.preferredLanguage !== undefined) {
+        userUpdates.preferredLanguage = req.body.preferredLanguage;
+      }
+      if (Object.keys(userUpdates).length) {
+        await User.findByIdAndUpdate(patient.userId, userUpdates);
       }
 
       await logAudit({

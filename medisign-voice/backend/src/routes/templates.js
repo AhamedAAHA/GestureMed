@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import EmergencyTemplate from '../models/EmergencyTemplate.js';
-import { authenticate, authorize } from '../middleware/auth.js';
+import { authenticate, authorize, attachUser } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 
 const router = Router();
+router.use(authenticate, attachUser);
 
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const templates = await EmergencyTemplate.find({ isActive: true }).sort({ key: 1 });
     res.json(templates);
@@ -17,7 +18,6 @@ router.get('/', authenticate, async (req, res, next) => {
 
 router.post(
   '/',
-  authenticate,
   authorize('admin'),
   [body('key').trim().notEmpty(), body('label.en').notEmpty(), body('message.en').notEmpty()],
   validate,
@@ -31,7 +31,7 @@ router.post(
   }
 );
 
-router.put('/:id', authenticate, authorize('admin'), async (req, res, next) => {
+router.put('/:id', authorize('admin'), async (req, res, next) => {
   try {
     const template = await EmergencyTemplate.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -44,7 +44,7 @@ router.put('/:id', authenticate, authorize('admin'), async (req, res, next) => {
   }
 });
 
-router.delete('/:id', authenticate, authorize('admin'), async (req, res, next) => {
+router.delete('/:id', authorize('admin'), async (req, res, next) => {
   try {
     const template = await EmergencyTemplate.findByIdAndUpdate(
       req.params.id,
