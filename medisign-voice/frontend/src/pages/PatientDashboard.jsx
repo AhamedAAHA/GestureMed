@@ -164,7 +164,10 @@ export default function PatientDashboard({ showToast }) {
 
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         const video = videoRef.current;
-        if (!video || stopped) return;
+        if (!video || stopped) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
         video.srcObject = stream;
         await video.play();
 

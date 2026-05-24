@@ -2,13 +2,13 @@
 
 **Real-time sign-to-speech platform for urgent patient communication**
 
-MediSign Voice helps deaf and mute patients communicate urgent medical needs to doctors using sign language simulation, quick emergency buttons, and typed text. Messages are improved by AI, classified by urgency, translated across English/Tamil/Sinhala, and spoken aloud via ElevenLabs (with browser speech fallback).
+MediSign Voice helps deaf and mute patients communicate urgent medical needs to doctors using live predefined hand-gesture shortcuts, manual quick actions, and typed text. Messages are improved by AI, classified by urgency, translated across English/Tamil/Sinhala, and spoken aloud via ElevenLabs (with browser speech fallback).
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | Vite, React, JavaScript, CSS, Three.js |
+| Frontend | Vite, React, JavaScript, CSS, Three.js, MediaPipe Tasks Vision |
 | API Gateway | Node.js, Express.js |
 | Microservice | Java 17, Spring Boot |
 | Database | MongoDB |
@@ -127,7 +127,8 @@ VITE_API_URL=http://localhost:5000/api
 ## Features
 
 - **Roles:** Patient, Doctor/Nurse, Admin
-- **Sign simulation:** Select signs (pain, chest, breathing, doctor, help) → AI combines into medical sentence
+- **Live gesture shortcuts:** MediaPipe webcam recognition adds supported medical-message chips after a steady pose is held
+- **Manual fallback:** Select message chips (pain, chest, breathing, doctor, help) if camera/model access is unavailable
 - **Emergency buttons:** Chest pain, breathing, bleeding, water, doctor, family
 - **AI urgency:** Normal / Warning / Emergency
 - **Multilingual UI:** English, Tamil, Sinhala
@@ -142,6 +143,20 @@ Running `npm run seed` creates:
 - 3 patients, 2 doctors, 1 admin
 - 3 wards, 8 emergency templates
 - 5 communication requests
+
+## Live Gesture Shortcuts
+
+The patient camera panel uses MediaPipe Gesture Recognizer in the browser. On first use, it downloads the official gesture model and WebAssembly runtime, so internet access is required for live recognition.
+
+| Hand pose | Message chip |
+|-----------|--------------|
+| Closed fist | Pain |
+| Thumb down | Chest |
+| Victory sign | Breathing Difficulty |
+| Thumb up | Doctor / Nurse |
+| Open palm | Help |
+
+These poses are interaction shortcuts for the demo workflow, not a trained interpreter for a complete sign language.
 
 ## Production Build
 
@@ -160,7 +175,7 @@ cd java-service && mvn package && java -jar target/medisign-java-service-1.0.0.j
 
 1. Open **http://localhost:5173**
 2. Login as **arun@patient.com** (patient)
-3. Select signs or tap **Chest Pain** emergency button
+3. Hold a supported hand pose in the camera, select a manual message chip, or tap **Chest Pain**
 4. Preview improved message → **Convert to Speech**
 5. Login as **dr.lee@medisign.com** in another browser tab
 6. See live emergency request pinned at top with pulse animation
