@@ -24,7 +24,7 @@ export default function LandingPage() {
           <img
             className="hero-logo"
             src="/gesturemed-logo.svg"
-            alt="GestureMed - AI-Powered Sign-to-Speech Healthcare System"
+            alt="GestureMed - AI Powered Care, Human Touch"
           />
           <LanguageSwitcher className="hero-lang" />
           <span className="hero-badge">🏥 Healthcare Communication Platform</span>

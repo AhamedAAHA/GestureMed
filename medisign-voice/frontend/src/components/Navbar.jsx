@@ -27,7 +27,7 @@ export default function Navbar() {
   return (
     <nav className="navbar glass-card">
       <Link to="/" className="navbar-brand" aria-label={`${t('appName')} home`}>
-        <img className="brand-logo" src="/gesturemed-logo.svg" alt="GestureMed - AI-Powered Sign-to-Speech Healthcare System" />
+        <img className="brand-logo" src="/gesturemed-logo.svg" alt="GestureMed - AI Powered Care, Human Touch" />
       </Link>
       <div className="navbar-actions">
         <LanguageSwitcher />
