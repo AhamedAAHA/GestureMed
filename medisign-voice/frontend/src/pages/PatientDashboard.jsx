@@ -9,6 +9,22 @@ import { useAuth } from '../context/AuthContext';
 import { playAlertSound } from '../utils/voice';
 
 const SIGNS = ['pain', 'chest', 'breathing', 'doctor', 'help'];
+const LIVE_GESTURES = {
+  Closed_Fist: { sign: 'pain', label: 'Closed fist' },
+  Thumb_Down: { sign: 'chest', label: 'Thumb down' },
+  Victory: { sign: 'breathing', label: 'Victory sign' },
+  Thumb_Up: { sign: 'doctor', label: 'Thumb up' },
+  Open_Palm: { sign: 'help', label: 'Open palm' },
+};
+const HAND_CONNECTIONS = [
+  [0, 1], [1, 2], [2, 3], [3, 4],
+  [0, 5], [5, 6], [6, 7], [7, 8],
+  [5, 9], [9, 10], [10, 11], [11, 12],
+  [9, 13], [13, 14], [14, 15], [15, 16],
+  [13, 17], [17, 18], [18, 19], [19, 20], [0, 17],
+];
+const GESTURE_CONFIDENCE = 0.65;
+const GESTURE_HOLD_MS = 650;
 const EMERGENCY_KEYS = [
   { key: 'chest_pain', labelKey: 'chestPain', icon: '❤️', variant: 'danger' },
   { key: 'breathing', labelKey: 'breathing', icon: '🫁', variant: 'danger' },
@@ -28,7 +44,10 @@ export default function PatientDashboard({ showToast }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [emergencyFlash, setEmergencyFlash] = useState(false);
+  const [cameraStatus, setCameraStatus] = useState('Starting camera...');
+  const [liveGesture, setLiveGesture] = useState(null);
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const sidebarItems = [
     { to: '/patient', labelKey: 'dashboard', icon: '🏠', end: true },
@@ -51,19 +70,145 @@ export default function PatientDashboard({ showToast }) {
     return () => clearInterval(interval);
   }, [loadData]);
 
+  const addDetectedSign = useCallback((sign) => {
+    setSelectedSigns((prev) => (prev.includes(sign) ? prev : [...prev, sign]));
+  }, []);
+
   useEffect(() => {
     let stream;
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        if (videoRef.current) videoRef.current.srcObject = stream;
-      } catch {
-        /* camera optional */
+    let recognizer;
+    let animationFrame;
+    let stopped = false;
+    let lastVideoTime = -1;
+    let lastInferenceAt = 0;
+    const stableGesture = { name: null, since: 0, accepted: false };
+
+    function drawLandmarks(hands) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas || !video.videoWidth || !video.videoHeight) return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.strokeStyle = '#22d3ee';
+      context.lineWidth = 3;
+      context.fillStyle = '#38bdf8';
+
+      hands.forEach((landmarks) => {
+        HAND_CONNECTIONS.forEach(([from, to]) => {
+          context.beginPath();
+          context.moveTo(landmarks[from].x * canvas.width, landmarks[from].y * canvas.height);
+          context.lineTo(landmarks[to].x * canvas.width, landmarks[to].y * canvas.height);
+          context.stroke();
+        });
+        landmarks.forEach((point) => {
+          context.beginPath();
+          context.arc(point.x * canvas.width, point.y * canvas.height, 4, 0, Math.PI * 2);
+          context.fill();
+        });
+      });
+    }
+
+    function processPrediction(prediction, timestamp) {
+      const matched = prediction && LIVE_GESTURES[prediction.categoryName];
+      if (!matched || prediction.score < GESTURE_CONFIDENCE) {
+        stableGesture.name = null;
+        stableGesture.accepted = false;
+        setLiveGesture(null);
+        return;
+      }
+
+      setLiveGesture({
+        ...matched,
+        confidence: Math.round(prediction.score * 100),
+      });
+
+      if (stableGesture.name !== prediction.categoryName) {
+        stableGesture.name = prediction.categoryName;
+        stableGesture.since = timestamp;
+        stableGesture.accepted = false;
+        return;
+      }
+
+      if (!stableGesture.accepted && timestamp - stableGesture.since >= GESTURE_HOLD_MS) {
+        addDetectedSign(matched.sign);
+        stableGesture.accepted = true;
       }
     }
-    startCamera();
-    return () => stream?.getTracks().forEach((tr) => tr.stop());
-  }, []);
+
+    function recognizeFrame(timestamp) {
+      if (stopped) return;
+      const video = videoRef.current;
+      if (
+        recognizer &&
+        video?.readyState >= 2 &&
+        video.currentTime !== lastVideoTime &&
+        timestamp - lastInferenceAt >= 100
+      ) {
+        lastVideoTime = video.currentTime;
+        lastInferenceAt = timestamp;
+        const result = recognizer.recognizeForVideo(video, timestamp);
+        drawLandmarks(result.landmarks || []);
+        processPrediction(result.gestures?.[0]?.[0], timestamp);
+      }
+      animationFrame = window.requestAnimationFrame(recognizeFrame);
+    }
+
+    async function startLiveRecognition() {
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error('Camera access is unavailable in this browser.');
+        }
+
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const video = videoRef.current;
+        if (!video || stopped) return;
+        video.srcObject = stream;
+        await video.play();
+
+        setCameraStatus('Loading live gesture model...');
+        const { FilesetResolver, GestureRecognizer } = await import('@mediapipe/tasks-vision');
+        const vision = await FilesetResolver.forVisionTasks(
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm'
+        );
+        recognizer = await GestureRecognizer.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath:
+              'https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/gesture_recognizer.task',
+          },
+          runningMode: 'VIDEO',
+          numHands: 1,
+          minHandDetectionConfidence: 0.5,
+          minHandPresenceConfidence: 0.5,
+          minTrackingConfidence: 0.5,
+        });
+
+        if (stopped) {
+          recognizer.close();
+          return;
+        }
+        setCameraStatus('Live recognition ready. Hold a supported gesture.');
+        animationFrame = window.requestAnimationFrame(recognizeFrame);
+      } catch (err) {
+        const denied = err?.name === 'NotAllowedError';
+        setCameraStatus(
+          denied
+            ? 'Camera permission denied. Use the buttons below.'
+            : 'Live recognition unavailable. Use the buttons below.'
+        );
+      }
+    }
+
+    startLiveRecognition();
+    return () => {
+      stopped = true;
+      window.cancelAnimationFrame(animationFrame);
+      recognizer?.close();
+      stream?.getTracks().forEach((track) => track.stop());
+    };
+  }, [addDetectedSign]);
 
   const toggleSign = (sign) => {
     setSelectedSigns((prev) =>
@@ -163,10 +308,28 @@ export default function PatientDashboard({ showToast }) {
           <h3>{t('cameraPreview')}</h3>
           <div className="camera-box">
             <video ref={videoRef} autoPlay playsInline muted className="camera-video" />
-            <div className="camera-overlay">Sign detection demo mode</div>
+            <canvas ref={canvasRef} className="camera-landmarks" aria-hidden="true" />
+            <div className="camera-overlay">
+              {liveGesture
+                ? `${liveGesture.label}: ${t(liveGesture.sign)} (${liveGesture.confidence}%)`
+                : cameraStatus}
+            </div>
           </div>
 
-          <h4>{t('signSimulation')}</h4>
+          <h4>Live Gesture Shortcuts</h4>
+          <p className="gesture-help">
+            Hold a pose briefly to add its medical message. These are predefined shortcuts,
+            not full sign-language translation.
+          </p>
+          <div className="gesture-guide">
+            {Object.values(LIVE_GESTURES).map((gesture) => (
+              <span className="gesture-map" key={gesture.sign}>
+                {gesture.label}: {t(gesture.sign)}
+              </span>
+            ))}
+          </div>
+
+          <h4 className="manual-sign-heading">Manual Selection</h4>
           <div className="sign-buttons">
             {SIGNS.map((sign) => (
               <button

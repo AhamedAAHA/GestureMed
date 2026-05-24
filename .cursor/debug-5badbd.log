@@ -1,0 +1,27 @@
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779654516590,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779654519247,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:listen-ok","message":"Server listening","data":{"port":"5000"},"timestamp":1779654519256,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779654590348,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779654592119,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779654595026,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:listen-ok","message":"Server listening","data":{"port":"5000"},"timestamp":1779654595034,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779654607783,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779654609977,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779654673977,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779654676951,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:listen-ok","message":"Server listening","data":{"port":"5000"},"timestamp":1779654676959,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779654837032,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779654839978,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:listen-ok","message":"Server listening","data":{"port":"5000"},"timestamp":1779654839984,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779655102233,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779655116458,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:listen-ok","message":"Server listening","data":{"port":"5000"},"timestamp":1779655116470,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779655147036,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779655150062,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:listen-ok","message":"Server listening","data":{"port":"5000"},"timestamp":1779655150076,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779655485700,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779655488718,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:listen-ok","message":"Server listening","data":{"port":"5000"},"timestamp":1779655488732,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:start","message":"start() entered","data":{"port":"5000","envPort":"5000"},"timestamp":1779655518506,"hypothesisId":"D"}
+{"sessionId":"5badbd","location":"server.js:pre-listen","message":"DB connected, attempting listen","data":{"port":"5000"},"timestamp":1779655520712,"hypothesisId":"A"}
+{"sessionId":"5badbd","location":"server.js:listen-ok","message":"Server listening","data":{"port":"5000"},"timestamp":1779655520724,"hypothesisId":"A"}

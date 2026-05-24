@@ -9,10 +9,11 @@ export default function Sidebar({ items }) {
       <nav className="sidebar-nav">
         {items.map((item) => (
           <NavLink
-            key={item.to}
+            key={`${item.to}-${item.labelKey}`}
             to={item.to}
             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             end={item.end}
+            onClick={item.onClick}
           >
             <span className="sidebar-icon">{item.icon}</span>
             {t(item.labelKey) || item.label}

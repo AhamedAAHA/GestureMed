@@ -10,27 +10,31 @@ export default function FormInput({
   options,
   ...props
 }) {
-  const InputTag = as === 'select' ? 'select' : as === 'textarea' ? 'textarea' : 'input';
+  const inputProps = {
+    className: 'form-input',
+    value,
+    onChange,
+    placeholder,
+    required,
+    ...props,
+  };
 
   return (
     <div className={`form-group ${error ? 'has-error' : ''}`}>
       {label && <label>{label}</label>}
-      <InputTag
-        type={as === 'input' ? type : undefined}
-        className="form-input"
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        required={required}
-        {...props}
-      >
-        {as === 'select' &&
-          options?.map((opt) => (
+      {as === 'select' ? (
+        <select {...inputProps}>
+          {options?.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
           ))}
-      </InputTag>
+        </select>
+      ) : as === 'textarea' ? (
+        <textarea {...inputProps} />
+      ) : (
+        <input type={type} {...inputProps} />
+      )}
       {error && <span className="form-error">{error}</span>}
     </div>
   );

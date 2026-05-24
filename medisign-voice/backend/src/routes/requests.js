@@ -34,7 +34,6 @@ async function enrichRequest(data) {
     translatedMessage: translated,
     urgency,
     urgencyScore: triage.score,
-    isPinned: urgency === 'Emergency',
     triageNotes: triage.reason || aiUrgency.reason,
   };
 }
@@ -83,7 +82,10 @@ router.get('/analytics', authorize('admin'), async (req, res, next) => {
 router.post(
   '/',
   authorize('patient'),
-  [body('rawMessage').trim().notEmpty()],
+  [
+    body('rawMessage').trim().notEmpty(),
+    body('urgency').optional().isIn(['Normal', 'Warning', 'Emergency']),
+  ],
   validate,
   async (req, res, next) => {
     try {
@@ -104,6 +106,12 @@ router.post(
         console.warn('Voice generation skipped:', voiceErr.message);
       }
 
+      const urgencyRank = { Normal: 0, Warning: 1, Emergency: 2 };
+      const requestedUrgency = req.body.urgency;
+      const urgency =
+        requestedUrgency && urgencyRank[requestedUrgency] > urgencyRank[enriched.urgency]
+          ? requestedUrgency
+          : enriched.urgency;
       const request = await CommunicationRequest.create({
         patientId: patient._id,
         createdBy: req.user.id,
@@ -113,9 +121,9 @@ router.post(
         language,
         source: req.body.source || 'text',
         detectedSigns: req.body.detectedSigns || [],
-        urgency: req.body.urgency || enriched.urgency,
+        urgency,
         urgencyScore: enriched.urgencyScore,
-        isPinned: enriched.isPinned,
+        isPinned: urgency === 'Emergency',
         triageNotes: enriched.triageNotes,
         voiceBase64,
       });

@@ -576,6 +576,14 @@ a {
   object-fit: cover;
 }
 
+.camera-landmarks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 .camera-overlay {
   position: absolute;
   bottom: 0;
@@ -586,6 +594,31 @@ a {
   color: white;
   font-size: 0.8rem;
   text-align: center;
+}
+
+.gesture-help {
+  margin: 0.35rem 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.gesture-guide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.gesture-map {
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.manual-sign-heading {
+  margin-bottom: 0.55rem;
 }
 
 .sign-buttons {

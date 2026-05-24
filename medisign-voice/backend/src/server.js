@@ -45,9 +45,29 @@ app.use(notFound);
 app.use(errorHandler);
 
 async function start() {
+  // #region agent log
+  fetch('http://127.0.0.1:7584/ingest/625ab932-2ffa-4880-9a9e-5308a63da83a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5badbd'},body:JSON.stringify({sessionId:'5badbd',location:'server.js:start',message:'start() entered',data:{port:PORT,envPort:process.env.PORT||null},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
   await connectDB();
-  app.listen(PORT, () => {
+  // #region agent log
+  fetch('http://127.0.0.1:7584/ingest/625ab932-2ffa-4880-9a9e-5308a63da83a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5badbd'},body:JSON.stringify({sessionId:'5badbd',location:'server.js:pre-listen',message:'DB connected, attempting listen',data:{port:PORT},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
+  const server = app.listen(PORT, () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7584/ingest/625ab932-2ffa-4880-9a9e-5308a63da83a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5badbd'},body:JSON.stringify({sessionId:'5badbd',location:'server.js:listen-ok',message:'Server listening',data:{port:PORT},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     console.log(`MediSign Voice API running on http://localhost:${PORT}`);
+  });
+  server.on('error', (err) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7584/ingest/625ab932-2ffa-4880-9a9e-5308a63da83a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5badbd'},body:JSON.stringify({sessionId:'5badbd',location:'server.js:listen-error',message:'Listen failed',data:{code:err.code,errno:err.errno,port:PORT,syscall:err.syscall},timestamp:Date.now(),hypothesisId:'A',runId:'post-fix'})}).catch(()=>{});
+    // #endregion
+    if (err.code === 'EADDRINUSE') {
+      console.error(
+        `Port ${PORT} is already in use. Stop the other process (e.g. another "npm run dev") or set PORT in .env to a free port.`
+      );
+    }
+    throw err;
   });
 }
 
