@@ -104,14 +104,12 @@ a {
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: var(--text);
 }
 
-.brand-icon {
-  font-size: 1.4rem;
+.brand-logo {
+  display: block;
+  width: clamp(205px, 26vw, 250px);
+  height: auto;
 }
 
 .navbar-actions {
@@ -322,6 +320,12 @@ a {
   max-width: 720px;
   padding: 2.5rem;
   text-align: center;
+}
+
+.hero-logo {
+  display: block;
+  width: min(100%, 410px);
+  margin: 0 auto 1.25rem;
 }
 
 .hero-badge {
@@ -610,11 +614,22 @@ a {
 }
 
 .gesture-map {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   padding: 0.3rem 0.55rem;
   border: 1px solid var(--surface-border);
   border-radius: 999px;
   color: var(--text-muted);
   font-size: 0.76rem;
+}
+
+.gesture-icon {
+  display: inline-block;
+  min-width: 1.1em;
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 .manual-sign-heading {
@@ -852,6 +867,12 @@ a {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
+}
+
+.request-time {
+  margin: -0.45rem 0 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
 }
 
 .status-pill {

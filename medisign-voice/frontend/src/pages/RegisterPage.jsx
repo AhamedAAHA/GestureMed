@@ -14,7 +14,6 @@ export default function RegisterPage() {
     name: '',
     email: '',
     password: '',
-    role: 'patient',
     preferredLanguage: lang,
   });
   const [error, setError] = useState('');
@@ -63,17 +62,6 @@ export default function RegisterPage() {
             value={form.password}
             onChange={update('password')}
             required
-          />
-          <FormInput
-            label={t('role')}
-            as="select"
-            value={form.role}
-            onChange={update('role')}
-            options={[
-              { value: 'patient', label: t('patient') },
-              { value: 'doctor', label: t('doctor') },
-              { value: 'admin', label: t('admin') },
-            ]}
           />
           <FormInput
             label={t('preferredLanguage')}

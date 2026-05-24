@@ -24,37 +24,27 @@ router.post(
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 6 }),
     body('name').trim().notEmpty(),
-    body('role').isIn(['patient', 'doctor', 'admin']),
     body('preferredLanguage').optional().isIn(['en', 'ta', 'si']),
   ],
   validate,
   async (req, res, next) => {
     try {
-      const { email, password, name, role, preferredLanguage = 'en' } = req.body;
+      const { email, password, name, preferredLanguage = 'en' } = req.body;
+      const role = 'patient';
       const exists = await User.findOne({ email });
       if (exists) return res.status(409).json({ message: 'Email already registered' });
 
       const user = await User.create({ email, password, name, role, preferredLanguage });
       let profile = null;
 
-      if (role === 'patient') {
-        profile = await Patient.create({
-          userId: user._id,
-          name,
-          preferredLanguage,
-        });
-        user.profileRef = profile._id;
-        user.profileModel = 'Patient';
-        await user.save();
-      } else if (role === 'doctor') {
-        profile = await Doctor.create({
-          userId: user._id,
-          name,
-        });
-        user.profileRef = profile._id;
-        user.profileModel = 'Doctor';
-        await user.save();
-      }
+      profile = await Patient.create({
+        userId: user._id,
+        name,
+        preferredLanguage,
+      });
+      user.profileRef = profile._id;
+      user.profileModel = 'Patient';
+      await user.save();
 
       const token = signToken(user);
       await logAudit({

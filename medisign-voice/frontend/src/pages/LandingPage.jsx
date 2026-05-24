@@ -21,6 +21,11 @@ export default function LandingPage() {
       <Navbar />
       <section className="hero">
         <div className="hero-content glass-card">
+          <img
+            className="hero-logo"
+            src="/gesturemed-logo.svg"
+            alt="GestureMed - AI-Powered Sign-to-Speech Healthcare System"
+          />
           <LanguageSwitcher className="hero-lang" />
           <span className="hero-badge">🏥 Healthcare Communication Platform</span>
           <h1>{t('landingTitle')}</h1>

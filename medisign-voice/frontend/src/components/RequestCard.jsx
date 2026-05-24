@@ -1,6 +1,7 @@
 import UrgencyBadge from './UrgencyBadge';
 import VoicePlayer from './VoicePlayer';
 import PatientCard from './PatientCard';
+import { formatSriLankaDateTime } from '../utils/dateTime';
 
 export default function RequestCard({
   request,
@@ -26,6 +27,9 @@ export default function RequestCard({
         </div>
         <span className={`status-pill status-${request.status}`}>{request.status}</span>
       </div>
+      <p className="request-time">
+        Sri Lanka time: {formatSriLankaDateTime(request.createdAt)}
+      </p>
 
       {isEmergency && patient && (
         <PatientCard patient={patient} urgency={request.urgency} />

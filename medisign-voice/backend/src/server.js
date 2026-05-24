@@ -27,7 +27,7 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'MediSign Voice API' });
+  res.json({ status: 'ok', service: 'GestureMed API' });
 });
 
 app.use('/api/auth', authRoutes);
@@ -56,7 +56,7 @@ async function start() {
     // #region agent log
     fetch('http://127.0.0.1:7584/ingest/625ab932-2ffa-4880-9a9e-5308a63da83a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5badbd'},body:JSON.stringify({sessionId:'5badbd',location:'server.js:listen-ok',message:'Server listening',data:{port:PORT},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
     // #endregion
-    console.log(`MediSign Voice API running on http://localhost:${PORT}`);
+    console.log(`GestureMed API running on http://localhost:${PORT}`);
   });
   server.on('error', (err) => {
     // #region agent log

@@ -6,6 +6,7 @@ import Modal from '../components/Modal';
 import FormInput from '../components/FormInput';
 import { api } from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { formatSriLankaDateTime } from '../utils/dateTime';
 
 const TABS = ['analytics', 'patients', 'doctors', 'templates', 'wards', 'logs'];
 
@@ -274,7 +275,7 @@ export default function AdminDashboard({ showToast }) {
               {
                 key: 'date',
                 label: 'Date',
-                render: (r) => new Date(r.createdAt).toLocaleString(),
+                render: (r) => formatSriLankaDateTime(r.createdAt),
               },
             ]}
             data={logs}

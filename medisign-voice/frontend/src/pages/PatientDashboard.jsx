@@ -7,14 +7,15 @@ import { api } from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { playAlertSound } from '../utils/voice';
+import { formatSriLankaDateTime } from '../utils/dateTime';
 
 const SIGNS = ['pain', 'chest', 'breathing', 'doctor', 'help'];
 const LIVE_GESTURES = {
-  Closed_Fist: { sign: 'pain', label: 'Closed fist' },
-  Thumb_Down: { sign: 'chest', label: 'Thumb down' },
-  Victory: { sign: 'breathing', label: 'Victory sign' },
-  Thumb_Up: { sign: 'doctor', label: 'Thumb up' },
-  Open_Palm: { sign: 'help', label: 'Open palm' },
+  Closed_Fist: { sign: 'pain', label: 'Closed fist', icon: '✊' },
+  Thumb_Down: { sign: 'chest', label: 'Thumb down', icon: '👎' },
+  Victory: { sign: 'breathing', label: 'Victory sign', icon: '✌️' },
+  Thumb_Up: { sign: 'doctor', label: 'Thumb up', icon: '👍' },
+  Open_Palm: { sign: 'help', label: 'Open palm', icon: '✋' },
 };
 const HAND_CONNECTIONS = [
   [0, 1], [1, 2], [2, 3], [3, 4],
@@ -314,7 +315,12 @@ export default function PatientDashboard({ showToast }) {
             <canvas ref={canvasRef} className="camera-landmarks" aria-hidden="true" />
             <div className="camera-overlay">
               {liveGesture
-                ? `${liveGesture.label}: ${t(liveGesture.sign)} (${liveGesture.confidence}%)`
+                ? (
+                    <>
+                      <span className="gesture-icon" aria-hidden="true">{liveGesture.icon}</span>{' '}
+                      {liveGesture.label}: {t(liveGesture.sign)} ({liveGesture.confidence}%)
+                    </>
+                  )
                 : cameraStatus}
             </div>
           </div>
@@ -327,7 +333,8 @@ export default function PatientDashboard({ showToast }) {
           <div className="gesture-guide">
             {Object.values(LIVE_GESTURES).map((gesture) => (
               <span className="gesture-map" key={gesture.sign}>
-                {gesture.label}: {t(gesture.sign)}
+                <span className="gesture-icon" aria-hidden="true">{gesture.icon}</span>
+                <span>{gesture.label}: {t(gesture.sign)}</span>
               </span>
             ))}
           </div>
@@ -425,7 +432,7 @@ export default function PatientDashboard({ showToast }) {
                 <div key={req._id} className={`history-item ${req.urgency === 'Emergency' ? 'pulse-emergency' : ''}`}>
                   <div className="history-top">
                     <UrgencyBadge urgency={req.urgency} />
-                    <span className="history-date">{new Date(req.createdAt).toLocaleString()}</span>
+                    <span className="history-date">{formatSriLankaDateTime(req.createdAt)}</span>
                   </div>
                   <p>{req.improvedMessage || req.rawMessage}</p>
                   <VoicePlayer request={req} label={t('playVoice')} />

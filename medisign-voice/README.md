@@ -1,8 +1,8 @@
-# MediSign Voice
+# GestureMed
 
 **Real-time sign-to-speech platform for urgent patient communication**
 
-MediSign Voice helps deaf and mute patients communicate urgent medical needs to doctors using live predefined hand-gesture shortcuts, manual quick actions, and typed text. Messages are improved by AI, classified by urgency, translated across English/Tamil/Sinhala, and spoken aloud via ElevenLabs (with browser speech fallback).
+GestureMed helps deaf and mute patients communicate urgent medical needs to doctors using live predefined hand-gesture shortcuts, manual quick actions, and typed text. Messages are improved by AI, classified by urgency, translated across English/Tamil/Sinhala, and spoken aloud via ElevenLabs (with browser speech fallback).
 
 ## Tech Stack
 
@@ -82,7 +82,7 @@ App runs at **http://localhost:5173**
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@medisign.com | admin123 |
+| Admin | admin@gesture.com | admin123 |
 | Doctor | dr.lee@medisign.com | doctor123 |
 | Patient | arun@patient.com | patient123 |
 | Patient | sita@patient.com | patient123 |
@@ -127,6 +127,7 @@ VITE_API_URL=http://localhost:5000/api
 ## Features
 
 - **Roles:** Patient, Doctor/Nurse, Admin
+- **Controlled access:** Public registration creates patient accounts; administrators create staff accounts
 - **Live gesture shortcuts:** MediaPipe webcam recognition adds supported medical-message chips after a steady pose is held
 - **Manual fallback:** Select message chips (pain, chest, breathing, doctor, help) if camera/model access is unavailable
 - **Emergency buttons:** Chest pain, breathing, bleeding, water, doctor, family
@@ -180,7 +181,7 @@ cd java-service && mvn package && java -jar target/medisign-java-service-1.0.0.j
 5. Login as **dr.lee@medisign.com** in another browser tab
 6. See live emergency request pinned at top with pulse animation
 7. Play voice, add medical note, mark handled
-8. Login as **admin@medisign.com** → view analytics and logs
+8. Login as **admin@gesture.com** → view analytics and logs
 
 ## License
 

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 270" role="img" aria-labelledby="title desc">
+  <title id="title">GestureMed</title>
+  <desc id="desc">AI Powered Care, Human Touch</desc>
+  <defs>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M272 24c-31 0-54 20-58 48-9-7-19-10-30-10-26 0-47 21-47 47 0 8 2 15 5 21-13 9-21 25-21 42 0 25 18 46 42 50 9 18 28 30 50 30 32 0 59-26 59-59z" stroke="url(#blue)" stroke-width="9"/>
+    <path d="M272 24v169c0 33 28 59 60 59 24 0 45-15 54-36 13-7 22-21 22-38 0-15-7-28-18-36 3-7 4-14 4-21 0-25-19-45-43-47-7-29-32-50-62-50-6 0-12 1-17 3" stroke="url(#teal)" stroke-width="9"/>
+    <path d="M272 24v214" stroke="#38bdf8" stroke-width="6"/>
+
+    <g stroke="url(#blue)" stroke-width="7">
+      <path d="M154 117h31l12 14h29"/>
+      <path d="M145 149h41l12 13h35"/>
+      <path d="M155 181h33l11-12h30"/>
+      <path d="M176 91l19 18h31"/>
+    </g>
+    <g fill="#38bdf8" stroke="#071728" stroke-width="4">
+      <circle cx="154" cy="117" r="8"/>
+      <circle cx="145" cy="149" r="8"/>
+      <circle cx="155" cy="181" r="8"/>
+      <circle cx="176" cy="91" r="8"/>
+      <circle cx="215" cy="206" r="8"/>
+    </g>
+    <path d="M215 206l12-18h24" stroke="url(#blue)" stroke-width="7"/>
+
+    <g stroke="url(#teal)" stroke-width="8">
+      <path d="M292 198v-81c0-9 5-15 12-15 7 0 11 6 11 15v35"/>
+      <path d="M315 152V86c0-9 5-15 12-15 7 0 11 6 11 15v63"/>
+      <path d="M338 149v-50c0-9 5-15 12-15 7 0 11 6 11 15v67"/>
+      <path d="M361 166v-44c0-9 5-14 12-14 7 0 11 5 11 14v62c0 32-21 53-51 53h-13"/>
+    </g>
+
+    <path d="M392 31v35M375 48h35" stroke="url(#teal)" stroke-width="10"/>
+  </g>
+
+  <text x="34" y="230" fill="#38bdf8" font-family="'Outfit', 'Arial', sans-serif" font-size="62" font-weight="650" letter-spacing="-1">Gesture</text>
+  <text x="274" y="230" fill="#34d399" font-family="'Outfit', 'Arial', sans-serif" font-size="62" font-weight="700">Med</text>
+  <path d="M35 253h32M520 253h33" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/>
+  <text x="80" y="258" fill="#94a3b8" font-family="'DM Sans', 'Arial', sans-serif" font-size="16" font-weight="600" letter-spacing="2.2">AI POWERED CARE, HUMAN TOUCH</text>
+</svg>

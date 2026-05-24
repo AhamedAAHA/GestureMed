@@ -126,7 +126,7 @@ async function seed() {
   ]);
 
   const adminUser = await User.create({
-    email: 'admin@medisign.com',
+    email: 'admin@gesture.com',
     password: 'admin123',
     name: 'System Admin',
     role: 'admin',
@@ -335,7 +335,7 @@ async function seed() {
 
   console.log('\n✅ Seed completed successfully!\n');
   console.log('Login credentials:');
-  console.log('  Admin:   admin@medisign.com / admin123');
+  console.log('  Admin:   admin@gesture.com / admin123');
   console.log('  Doctor:  dr.lee@medisign.com / doctor123');
   console.log('  Patient: arun@patient.com / patient123');
   console.log('  Patient: sita@patient.com / patient123');

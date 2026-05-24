@@ -1,10 +1,10 @@
 export const translations = {
   en: {
-    appName: 'MediSign Voice',
+    appName: 'GestureMed',
     tagline: 'Real-time sign-to-speech for urgent patient communication',
     landingTitle: 'Communicate Urgently. Be Heard Instantly.',
     landingDesc:
-      'MediSign Voice helps deaf and mute patients express urgent medical needs through sign language simulation, quick emergency buttons, and AI-powered speech for doctors.',
+      'GestureMed helps deaf and mute patients express urgent medical needs through live gesture shortcuts, quick emergency buttons, and AI-powered speech for doctors.',
     getStarted: 'Get Started',
     login: 'Login',
     register: 'Register',
@@ -95,7 +95,7 @@ export const translations = {
     signToSpeech: 'Sign to Speech',
   },
   ta: {
-    appName: 'மெடிசைன் வாய்ஸ்',
+    appName: 'GestureMed',
     tagline: 'அவசர நோயாளி தொடர்புக்கான நிகழ்நேர சைகை-பேச்சு',
     landingTitle: 'அவசரமாக தொடர்பு கொள்ளுங்கள். உடனடியாக கேட்கப்படுங்கள்.',
     landingDesc:
@@ -190,7 +190,7 @@ export const translations = {
     signToSpeech: 'சைகை முதல் பேச்சு',
   },
   si: {
-    appName: 'මෙඩිසයින් වොයිස්',
+    appName: 'GestureMed',
     tagline: 'හදිසි රෝගී සන්නිවේදනය සඳහා සජීවී සංඥා-කථන',
     landingTitle: 'හදිසිව සන්නිවේදනය කරන්න. වහාම ඇසෙන්න.',
     landingDesc:

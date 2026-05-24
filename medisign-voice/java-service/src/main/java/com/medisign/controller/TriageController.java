@@ -22,7 +22,7 @@ public class TriageController {
 
     @GetMapping("/health")
     public String health() {
-        return "MediSign Java Service OK";
+        return "GestureMed Java Service OK";
     }
 
     @PostMapping("/triage-score")

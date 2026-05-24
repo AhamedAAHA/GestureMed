@@ -1,7 +1,7 @@
 {
   "name": "medisign-voice-backend",
   "version": "1.0.0",
-  "description": "MediSign Voice API Gateway",
+  "description": "GestureMed API Gateway",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
