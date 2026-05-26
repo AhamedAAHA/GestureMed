@@ -18,7 +18,7 @@ export default function Navbar() {
   const dashPath =
     user?.role === 'patient'
       ? '/patient'
-      : user?.role === 'doctor'
+      : ['doctor', 'nurse'].includes(user?.role)
         ? '/doctor'
         : user?.role === 'admin'
           ? '/admin'

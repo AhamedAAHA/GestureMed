@@ -17,7 +17,11 @@ export default function ProfilePage({ showToast }) {
 
   const sidebarItems = [
     {
-      to: user?.role === 'patient' ? '/patient' : user?.role === 'doctor' ? '/doctor' : '/admin',
+      to: user?.role === 'patient'
+        ? '/patient'
+        : ['doctor', 'nurse'].includes(user?.role)
+          ? '/doctor'
+          : '/admin',
       labelKey: 'dashboard',
       icon: '🏠',
     },
@@ -32,7 +36,7 @@ export default function ProfilePage({ showToast }) {
         if (user?.role === 'patient') {
           const p = await api.patients.me();
           setProfile(p);
-        } else if (user?.role === 'doctor') {
+        } else if (['doctor', 'nurse'].includes(user?.role)) {
           const d = await api.doctors.me();
           setProfile(d);
         } else {

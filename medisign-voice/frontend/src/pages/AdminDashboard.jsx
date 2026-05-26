@@ -14,7 +14,7 @@ const TABS = ['analytics', 'patients', 'doctors', 'templates', 'wards', 'logs'];
 export default function AdminDashboard({ showToast }) {
   const { t, lang } = useLanguage();
   const [tab, setTab] = useState('analytics');
-  const [analytics, setAnalytics] = useState({});
+  const [analytics, setAnalytics] = useState(null);
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -22,12 +22,40 @@ export default function AdminDashboard({ showToast }) {
   const [logs, setLogs] = useState([]);
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const loadAnalytics = useCallback(async (notifyError = false) => {
+    try {
+      setAnalytics(await api.requests.analytics());
+    } catch (err) {
+      if (notifyError) showToast?.(err.message, 'error');
+    }
+  }, [showToast]);
+
+  const loadTabData = useCallback(async (selectedTab, notifyError = false) => {
+    const resources = {
+      patients: [api.patients.list, setPatients],
+      doctors: [api.doctors.list, setDoctors],
+      templates: [api.templates.list, setTemplates],
+      wards: [api.wards.list, setWards],
+      logs: [api.audit.list, setLogs],
+    };
+    const resource = resources[selectedTab];
+    if (!resource) return;
+
+    try {
+      const [fetchData, setData] = resource;
+      setData(await fetchData());
+    } catch (err) {
+      if (notifyError) showToast?.(err.message, 'error');
+    }
+  }, [showToast]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [a, p, d, tp, w, l] = await Promise.all([
+      const results = await Promise.allSettled([
         api.requests.analytics(),
         api.patients.list(),
         api.doctors.list(),
@@ -35,14 +63,12 @@ export default function AdminDashboard({ showToast }) {
         api.wards.list(),
         api.audit.list(),
       ]);
-      setAnalytics(a);
-      setPatients(p);
-      setDoctors(d);
-      setTemplates(tp);
-      setWards(w);
-      setLogs(l);
-    } catch (err) {
-      showToast?.(err.message, 'error');
+      const setters = [setAnalytics, setPatients, setDoctors, setTemplates, setWards, setLogs];
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') setters[index](result.value);
+      });
+      const failed = results.find((result) => result.status === 'rejected');
+      if (failed) showToast?.(failed.reason.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -50,10 +76,17 @@ export default function AdminDashboard({ showToast }) {
 
   useEffect(() => {
     loadAll();
-  }, [loadAll]);
+    const interval = setInterval(() => loadAnalytics(), 3000);
+    return () => clearInterval(interval);
+  }, [loadAll, loadAnalytics]);
+
+  useEffect(() => {
+    if (tab !== 'analytics') loadTabData(tab, true);
+  }, [loadTabData, tab]);
 
   const openCreate = (type) => {
     setForm({});
+    setFormErrors({});
     setModal({ type, mode: 'create' });
   };
 
@@ -69,6 +102,7 @@ export default function AdminDashboard({ showToast }) {
       values = {
         name: record.name,
         specialization: record.specialization || '',
+        role: record.userId?.role || 'doctor',
       };
     } else if (type === 'template') {
       values = {
@@ -85,17 +119,52 @@ export default function AdminDashboard({ showToast }) {
       };
     }
     setForm(values);
+    setFormErrors({});
     setModal({ type, mode: 'edit', id: record._id });
+  };
+
+  const validateForm = (type, mode) => {
+    const errors = {};
+    if (['patient', 'doctor', 'ward'].includes(type) && !form.name?.trim()) {
+      errors.name = 'Name is required.';
+    }
+    if (mode === 'create' && ['patient', 'doctor'].includes(type)) {
+      if (!form.email?.trim()) {
+        errors.email = 'Email is required.';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+        errors.email = 'Enter a valid email address.';
+      }
+      if (!form.password) {
+        errors.password = 'Password is required.';
+      } else if (form.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters.';
+      }
+    }
+    if (type === 'ward' && form.capacity !== '' && Number(form.capacity) < 0) {
+      errors.capacity = 'Capacity cannot be negative.';
+    }
+    if (type === 'template') {
+      if (!form.key?.trim()) errors.key = 'Key is required.';
+      if (!form.labelEn?.trim()) errors.labelEn = 'Label is required.';
+      if (!form.messageEn?.trim()) errors.messageEn = 'Message is required.';
+    }
+    return errors;
   };
 
   const handleSave = async () => {
     try {
       const { type, mode, id } = modal;
+      const validationErrors = validateForm(type, mode);
+      if (Object.keys(validationErrors).length) {
+        setFormErrors(validationErrors);
+        return;
+      }
+      setFormErrors({});
       if (type === 'patient') {
         if (mode === 'create') await api.patients.create(form);
         else await api.patients.update(id, form);
       } else if (type === 'doctor') {
-        if (mode === 'create') await api.doctors.create(form);
+        if (mode === 'create') await api.doctors.create({ ...form, role: form.role || 'doctor' });
         else await api.doctors.update(id, form);
       } else if (type === 'template') {
         const payload = {
@@ -114,7 +183,16 @@ export default function AdminDashboard({ showToast }) {
       setModal(null);
       loadAll();
     } catch (err) {
-      showToast?.(err.message, 'error');
+      const fieldErrors = Object.fromEntries(
+        (err.errors || [])
+          .filter((error) => error.path)
+          .map((error) => [error.path, error.msg])
+      );
+      setFormErrors(fieldErrors);
+      showToast?.(
+        Object.values(fieldErrors)[0] || err.message,
+        'error'
+      );
     }
   };
 
@@ -132,8 +210,10 @@ export default function AdminDashboard({ showToast }) {
     }
   };
 
-  const updateForm = (key) => (e) =>
+  const updateForm = (key) => (e) => {
     setForm((previous) => ({ ...previous, [key]: e.target.value }));
+    setFormErrors((previous) => ({ ...previous, [key]: undefined }));
+  };
 
   return (
     <DashboardLayout
@@ -166,22 +246,22 @@ export default function AdminDashboard({ showToast }) {
 
       {tab === 'analytics' && (
         <div className="stats-grid">
-          <StatCard title={t('totalPatients')} value={analytics.totalPatients} icon="🧑" />
+          <StatCard title={t('totalPatients')} value={analytics?.totalPatients ?? '-'} icon="🧑" />
           <StatCard
             title={t('emergencyAlerts')}
-            value={analytics.emergencyAlerts}
+            value={analytics?.emergencyAlerts ?? '-'}
             icon="🚨"
             variant="danger"
           />
           <StatCard
             title={t('pendingRequests')}
-            value={analytics.pendingRequests}
+            value={analytics?.pendingRequests ?? '-'}
             icon="⏳"
             variant="warning"
           />
           <StatCard
             title={t('handledRequests')}
-            value={analytics.handledRequests}
+            value={analytics?.handledRequests ?? '-'}
             icon="✅"
             variant="success"
           />
@@ -233,6 +313,7 @@ export default function AdminDashboard({ showToast }) {
           <Table
             columns={[
               { key: 'name', label: t('name'), render: (r) => r.name },
+              { key: 'role', label: t('role'), render: (r) => r.userId?.role || 'doctor' },
               { key: 'spec', label: 'Specialization', render: (r) => r.specialization },
               {
                 key: 'actions',
@@ -354,11 +435,11 @@ export default function AdminDashboard({ showToast }) {
       >
         {modal?.type === 'patient' && (
           <>
-            <FormInput label={t('name')} value={form.name || ''} onChange={updateForm('name')} />
+            <FormInput label={t('name')} value={form.name || ''} onChange={updateForm('name')} error={formErrors.name} required />
             {modal.mode === 'create' && (
               <>
-                <FormInput label={t('email')} value={form.email || ''} onChange={updateForm('email')} />
-                <FormInput label={t('password')} type="password" value={form.password || ''} onChange={updateForm('password')} />
+                <FormInput label={t('email')} type="email" value={form.email || ''} onChange={updateForm('email')} error={formErrors.email} required />
+                <FormInput label={t('password')} type="password" value={form.password || ''} onChange={updateForm('password')} error={formErrors.password} minLength={6} required />
               </>
             )}
             <FormInput label={t('wardRoom')} value={form.roomNumber || ''} onChange={updateForm('roomNumber')} />
@@ -377,11 +458,11 @@ export default function AdminDashboard({ showToast }) {
         )}
         {modal?.type === 'doctor' && (
           <>
-            <FormInput label={t('name')} value={form.name || ''} onChange={updateForm('name')} />
+            <FormInput label={t('name')} value={form.name || ''} onChange={updateForm('name')} error={formErrors.name} required />
             {modal.mode === 'create' && (
               <>
-                <FormInput label={t('email')} value={form.email || ''} onChange={updateForm('email')} />
-                <FormInput label={t('password')} type="password" value={form.password || ''} onChange={updateForm('password')} />
+                <FormInput label={t('email')} type="email" value={form.email || ''} onChange={updateForm('email')} error={formErrors.email} required />
+                <FormInput label={t('password')} type="password" value={form.password || ''} onChange={updateForm('password')} error={formErrors.password} minLength={6} required />
               </>
             )}
             <FormInput
@@ -389,34 +470,52 @@ export default function AdminDashboard({ showToast }) {
               value={form.specialization || ''}
               onChange={updateForm('specialization')}
             />
+            {modal.mode === 'create' && (
+              <FormInput
+                label={t('role')}
+                as="select"
+                value={form.role || 'doctor'}
+                onChange={updateForm('role')}
+                options={[
+                  { value: 'doctor', label: 'Doctor' },
+                  { value: 'nurse', label: 'Nurse' },
+                ]}
+              />
+            )}
           </>
         )}
         {modal?.type === 'ward' && (
           <>
-            <FormInput label={t('name')} value={form.name || ''} onChange={updateForm('name')} />
+            <FormInput label={t('name')} value={form.name || ''} onChange={updateForm('name')} error={formErrors.name} required />
             <FormInput label="Floor" value={form.floor || ''} onChange={updateForm('floor')} />
             <FormInput
               label="Capacity"
               type="number"
-              value={form.capacity || ''}
+              value={form.capacity ?? ''}
               onChange={updateForm('capacity')}
+              error={formErrors.capacity}
+              min={0}
             />
           </>
         )}
         {modal?.type === 'template' && (
           <>
-            <FormInput label="Key" value={form.key || ''} onChange={updateForm('key')} />
+            <FormInput label="Key" value={form.key || ''} onChange={updateForm('key')} error={formErrors.key} required />
             <FormInput
               label="Label (EN)"
               value={form.labelEn || ''}
               onChange={updateForm('labelEn')}
+              error={formErrors.labelEn}
+              required
             />
             <FormInput
               label="Message (EN)"
               as="textarea"
               value={form.messageEn || ''}
               onChange={updateForm('messageEn')}
+              error={formErrors.messageEn}
               rows={3}
+              required
             />
             <VoiceTranscription
               onTranscript={(transcript) =>

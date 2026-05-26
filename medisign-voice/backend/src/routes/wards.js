@@ -19,7 +19,10 @@ router.get('/', async (req, res, next) => {
 router.post(
   '/',
   authorize('admin'),
-  [body('name').trim().notEmpty()],
+  [
+    body('name').trim().notEmpty().withMessage('Name is required.'),
+    body('capacity').optional().isInt({ min: 0 }).withMessage('Capacity cannot be negative.'),
+  ],
   validate,
   async (req, res, next) => {
     try {
@@ -31,18 +34,24 @@ router.post(
   }
 );
 
-router.put('/:id', authorize('admin'), async (req, res, next) => {
-  try {
-    const ward = await Ward.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!ward) return res.status(404).json({ message: 'Ward not found' });
-    res.json(ward);
-  } catch (err) {
-    next(err);
+router.put(
+  '/:id',
+  authorize('admin'),
+  [body('capacity').optional().isInt({ min: 0 }).withMessage('Capacity cannot be negative.')],
+  validate,
+  async (req, res, next) => {
+    try {
+      const ward = await Ward.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+      if (!ward) return res.status(404).json({ message: 'Ward not found' });
+      res.json(ward);
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 router.delete('/:id', authorize('admin'), async (req, res, next) => {
   try {

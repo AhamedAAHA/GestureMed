@@ -32,7 +32,11 @@ export default function RegisterPage() {
     try {
       const user = await register(form);
       const path =
-        user.role === 'patient' ? '/patient' : user.role === 'doctor' ? '/doctor' : '/admin';
+        user.role === 'patient'
+          ? '/patient'
+          : ['doctor', 'nurse'].includes(user.role)
+            ? '/doctor'
+            : '/admin';
       navigate(path);
     } catch (err) {
       setError(err.message || t('error'));

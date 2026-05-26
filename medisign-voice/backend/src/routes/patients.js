@@ -11,7 +11,7 @@ router.use(authenticate, attachUser);
 
 router.get('/', authorize('admin', 'doctor'), async (req, res, next) => {
   try {
-    const patients = await Patient.find()
+    const patients = await Patient.find({ isActive: { $ne: false } })
       .populate('wardId')
       .populate('userId', 'email name preferredLanguage isActive')
       .sort({ createdAt: -1 });
@@ -48,10 +48,13 @@ router.post(
   '/',
   authorize('admin'),
   [
-    body('email').isEmail(),
-    body('password').isLength({ min: 6 }),
-    body('name').trim().notEmpty(),
-    body('preferredLanguage').optional().isIn(['en', 'ta', 'si']),
+    body('email').isEmail().withMessage('Enter a valid email address.'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters.'),
+    body('name').trim().notEmpty().withMessage('Name is required.'),
+    body('preferredLanguage')
+      .optional()
+      .isIn(['en', 'ta', 'si'])
+      .withMessage('Select a valid preferred language.'),
   ],
   validate,
   async (req, res, next) => {
@@ -118,7 +121,9 @@ router.put(
         'preferredLanguage',
       ];
       allowed.forEach((key) => {
-        if (req.body[key] !== undefined) patient[key] = req.body[key];
+        if (req.body[key] !== undefined) {
+          patient[key] = key === 'wardId' && req.body[key] === '' ? null : req.body[key];
+        }
       });
       await patient.save();
 
@@ -148,7 +153,11 @@ router.put(
 
 router.delete('/:id', authorize('admin'), async (req, res, next) => {
   try {
-    const patient = await Patient.findByIdAndDelete(req.params.id);
+    const patient = await Patient.findByIdAndUpdate(
+      req.params.id,
+      { isActive: false },
+      { new: true }
+    );
     if (!patient) return res.status(404).json({ message: 'Patient not found' });
     await User.findByIdAndUpdate(patient.userId, { isActive: false });
     await logAudit({

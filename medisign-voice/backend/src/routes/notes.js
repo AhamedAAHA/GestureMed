@@ -8,7 +8,7 @@ import { validate } from '../middleware/validate.js';
 const router = Router();
 router.use(authenticate, attachUser);
 
-router.get('/', authorize('doctor', 'admin'), async (req, res, next) => {
+router.get('/', authorize('doctor', 'nurse', 'admin'), async (req, res, next) => {
   try {
     const filter = {};
     if (req.query.requestId) filter.requestId = req.query.requestId;
@@ -26,7 +26,7 @@ router.get('/', authorize('doctor', 'admin'), async (req, res, next) => {
 
 router.post(
   '/',
-  authorize('doctor', 'admin'),
+  authorize('doctor', 'nurse', 'admin'),
   [
     body('requestId').notEmpty(),
     body('patientId').notEmpty(),
@@ -36,7 +36,7 @@ router.post(
   async (req, res, next) => {
     try {
       let doctorId = null;
-      if (req.user.role === 'doctor') {
+      if (['doctor', 'nurse'].includes(req.user.role)) {
         const doctor = await Doctor.findOne({ userId: req.user.id });
         doctorId = doctor?._id;
       }
@@ -58,7 +58,7 @@ router.post(
   }
 );
 
-router.put('/:id', authorize('doctor', 'admin'), async (req, res, next) => {
+router.put('/:id', authorize('doctor', 'nurse', 'admin'), async (req, res, next) => {
   try {
     const note = await MedicalNote.findById(req.params.id);
     if (!note) return res.status(404).json({ message: 'Note not found' });
@@ -70,7 +70,7 @@ router.put('/:id', authorize('doctor', 'admin'), async (req, res, next) => {
   }
 });
 
-router.delete('/:id', authorize('doctor', 'admin'), async (req, res, next) => {
+router.delete('/:id', authorize('doctor', 'nurse', 'admin'), async (req, res, next) => {
   try {
     await MedicalNote.findByIdAndDelete(req.params.id);
     res.json({ message: 'Note deleted' });

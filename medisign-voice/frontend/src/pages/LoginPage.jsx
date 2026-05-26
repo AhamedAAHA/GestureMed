@@ -22,7 +22,11 @@ export default function LoginPage() {
     try {
       const user = await login(email, password);
       const path =
-        user.role === 'patient' ? '/patient' : user.role === 'doctor' ? '/doctor' : '/admin';
+        user.role === 'patient'
+          ? '/patient'
+          : ['doctor', 'nurse'].includes(user.role)
+            ? '/doctor'
+            : '/admin';
       navigate(path);
     } catch (err) {
       setError(err.message || t('error'));
@@ -37,7 +41,6 @@ export default function LoginPage() {
       <Navbar />
       <div className="auth-card glass-card page-transition">
         <h2>{t('signIn')}</h2>
-        <p className="auth-hint">Demo: arun@patient.com / patient123</p>
         <form onSubmit={handleSubmit}>
           <FormInput
             label={t('email')}

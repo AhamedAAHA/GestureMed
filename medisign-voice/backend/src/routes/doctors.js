@@ -9,9 +9,9 @@ import { logAudit } from '../services/auditService.js';
 const router = Router();
 router.use(authenticate, attachUser);
 
-router.get('/', authorize('admin', 'doctor'), async (req, res, next) => {
+router.get('/', authorize('admin', 'doctor', 'nurse'), async (req, res, next) => {
   try {
-    const doctors = await Doctor.find()
+    const doctors = await Doctor.find({ isActive: { $ne: false } })
       .populate('wardIds')
       .populate('userId', 'email name isActive')
       .sort({ createdAt: -1 });
@@ -21,7 +21,7 @@ router.get('/', authorize('admin', 'doctor'), async (req, res, next) => {
   }
 });
 
-router.get('/me', authorize('doctor'), async (req, res, next) => {
+router.get('/me', authorize('doctor', 'nurse'), async (req, res, next) => {
   try {
     const doctor = await Doctor.findOne({ userId: req.user.id }).populate('wardIds');
     if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
@@ -35,14 +35,15 @@ router.post(
   '/',
   authorize('admin'),
   [
-    body('email').isEmail(),
-    body('password').isLength({ min: 6 }),
-    body('name').trim().notEmpty(),
+    body('email').isEmail().withMessage('Enter a valid email address.'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters.'),
+    body('name').trim().notEmpty().withMessage('Name is required.'),
+    body('role').optional().isIn(['doctor', 'nurse']).withMessage('Select a valid staff role.'),
   ],
   validate,
   async (req, res, next) => {
     try {
-      const { email, password, name, ...profileData } = req.body;
+      const { email, password, name, role = 'doctor', ...profileData } = req.body;
       const exists = await User.findOne({ email });
       if (exists) return res.status(409).json({ message: 'Email already exists' });
 
@@ -50,7 +51,7 @@ router.post(
         email,
         password,
         name,
-        role: 'doctor',
+        role,
       });
       const doctor = await Doctor.create({
         userId: user._id,
@@ -119,7 +120,11 @@ router.put(
 
 router.delete('/:id', authorize('admin'), async (req, res, next) => {
   try {
-    const doctor = await Doctor.findByIdAndDelete(req.params.id);
+    const doctor = await Doctor.findByIdAndUpdate(
+      req.params.id,
+      { isActive: false, isOnDuty: false },
+      { new: true }
+    );
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
     await User.findByIdAndUpdate(doctor.userId, { isActive: false });
     await logAudit({

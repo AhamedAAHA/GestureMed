@@ -21,10 +21,13 @@ function signToken(user) {
 router.post(
   '/register',
   [
-    body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 6 }),
-    body('name').trim().notEmpty(),
-    body('preferredLanguage').optional().isIn(['en', 'ta', 'si']),
+    body('email').isEmail().withMessage('Enter a valid email address.').normalizeEmail(),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters.'),
+    body('name').trim().notEmpty().withMessage('Name is required.'),
+    body('preferredLanguage')
+      .optional()
+      .isIn(['en', 'ta', 'si'])
+      .withMessage('Select a valid preferred language.'),
   ],
   validate,
   async (req, res, next) => {
@@ -68,7 +71,10 @@ router.post(
 
 router.post(
   '/login',
-  [body('email').isEmail().normalizeEmail(), body('password').notEmpty()],
+  [
+    body('email').isEmail().withMessage('Enter a valid email address.').normalizeEmail(),
+    body('password').notEmpty().withMessage('Password is required.'),
+  ],
   validate,
   async (req, res, next) => {
     try {

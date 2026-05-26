@@ -42,9 +42,14 @@ export default function DoctorDashboard({ showToast }) {
         : [];
       if (newRequests.length) {
         const hasEmergency = newRequests.some((request) => request.urgency === 'Emergency');
+        const visibleRequestIds = new Set(data.map((request) => request._id));
+        const hiddenByFilter = newRequests.some((request) => !visibleRequestIds.has(request._id));
+        const message = hasEmergency
+          ? 'New emergency patient request!'
+          : 'New patient request received!';
         playAlertSound();
         showToast?.(
-          hasEmergency ? '🚨 New emergency patient request!' : 'New patient request received!',
+          hiddenByFilter ? `${message} Select All to view it.` : message,
           hasEmergency ? 'error' : 'success'
         );
       }

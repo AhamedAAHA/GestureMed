@@ -17,6 +17,7 @@ const patientSchema = new mongoose.Schema(
     wardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ward' },
     roomNumber: { type: String, trim: true },
     preferredLanguage: { type: String, enum: ['en', 'ta', 'si'], default: 'en' },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

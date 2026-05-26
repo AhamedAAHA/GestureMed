@@ -18,20 +18,25 @@ export async function improveMessage(rawMessage, language = 'en') {
     return fallbackImprove(rawMessage);
   }
 
-  const lang = LANG_NAMES[language] || 'English';
-  const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: `You are a medical communication assistant. Convert patient messages into clear, doctor-friendly sentences in ${lang}. Be concise and professional. If signs are listed, combine them naturally.`,
-      },
-      { role: 'user', content: rawMessage },
-    ],
-    temperature: 0.3,
-  });
+  try {
+    const lang = LANG_NAMES[language] || 'English';
+    const response = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a medical communication assistant. Convert patient messages into clear, doctor-friendly sentences in ${lang}. Be concise and professional. If signs are listed, combine them naturally.`,
+        },
+        { role: 'user', content: rawMessage },
+      ],
+      temperature: 0.3,
+    });
 
-  return response.choices[0]?.message?.content?.trim() || fallbackImprove(rawMessage);
+    return response.choices[0]?.message?.content?.trim() || fallbackImprove(rawMessage);
+  } catch (err) {
+    console.warn('OpenAI message improvement fallback:', err.message);
+    return fallbackImprove(rawMessage);
+  }
 }
 
 export async function detectUrgency(message) {
@@ -40,27 +45,27 @@ export async function detectUrgency(message) {
     return fallbackUrgency(message);
   }
 
-  const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'Classify patient medical messages urgency as exactly one of: Normal, Warning, Emergency. Reply JSON only: {"urgency":"...","reason":"..."}',
-      },
-      { role: 'user', content: message },
-    ],
-    temperature: 0,
-    response_format: { type: 'json_object' },
-  });
-
   try {
+    const response = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Classify patient medical messages urgency as exactly one of: Normal, Warning, Emergency. Reply JSON only: {"urgency":"...","reason":"..."}',
+        },
+        { role: 'user', content: message },
+      ],
+      temperature: 0,
+      response_format: { type: 'json_object' },
+    });
     const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
     const urgency = ['Normal', 'Warning', 'Emergency'].includes(parsed.urgency)
       ? parsed.urgency
       : 'Normal';
     return { urgency, reason: parsed.reason || '' };
-  } catch {
+  } catch (err) {
+    console.warn('OpenAI urgency fallback:', err.message);
     return fallbackUrgency(message);
   }
 }
@@ -72,19 +77,24 @@ export async function translateMessage(message, targetLanguage) {
     return message;
   }
 
-  const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: `Translate this medical patient message to ${lang}. Keep medical meaning accurate.`,
-      },
-      { role: 'user', content: message },
-    ],
-    temperature: 0.2,
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `Translate this medical patient message to ${lang}. Keep medical meaning accurate.`,
+        },
+        { role: 'user', content: message },
+      ],
+      temperature: 0.2,
+    });
 
-  return response.choices[0]?.message?.content?.trim() || message;
+    return response.choices[0]?.message?.content?.trim() || message;
+  } catch (err) {
+    console.warn('OpenAI translation fallback:', err.message);
+    return message;
+  }
 }
 
 function fallbackImprove(raw) {

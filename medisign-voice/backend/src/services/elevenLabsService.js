@@ -28,8 +28,8 @@ export async function generateSpeech(text, language = 'en') {
   });
 
   if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`ElevenLabs error: ${res.status} ${errText}`);
+    console.warn(`ElevenLabs unavailable (${res.status}); using browser speech fallback.`);
+    return { provider: 'browser-fallback', audioBase64: null, message: text };
   }
 
   const buffer = Buffer.from(await res.arrayBuffer());

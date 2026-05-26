@@ -30,7 +30,7 @@ function AppRoutes() {
         <Route
           path="/doctor"
           element={
-            <ProtectedRoute roles={['doctor']}>
+            <ProtectedRoute roles={['doctor', 'nurse']}>
               <DoctorDashboard showToast={showToast} />
             </ProtectedRoute>
           }
@@ -46,7 +46,7 @@ function AppRoutes() {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute roles={['patient', 'doctor', 'admin']}>
+            <ProtectedRoute roles={['patient', 'doctor', 'nurse', 'admin']}>
               <ProfilePage showToast={showToast} />
             </ProtectedRoute>
           }

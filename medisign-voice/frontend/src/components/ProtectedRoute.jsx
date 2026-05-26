@@ -15,7 +15,11 @@ export default function ProtectedRoute({ children, roles }) {
   if (!user) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user.role)) {
     const redirect =
-      user.role === 'patient' ? '/patient' : user.role === 'doctor' ? '/doctor' : '/admin';
+      user.role === 'patient'
+        ? '/patient'
+        : ['doctor', 'nurse'].includes(user.role)
+          ? '/doctor'
+          : '/admin';
     return <Navigate to={redirect} replace />;
   }
 

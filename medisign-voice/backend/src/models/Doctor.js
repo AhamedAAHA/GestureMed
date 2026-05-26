@@ -9,6 +9,7 @@ const doctorSchema = new mongoose.Schema(
     licenseNumber: { type: String, trim: true },
     wardIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Ward' }],
     isOnDuty: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

@@ -38,7 +38,7 @@ async function enrichRequest(data) {
   };
 }
 
-router.get('/', authorize('doctor', 'admin', 'patient'), async (req, res, next) => {
+router.get('/', authorize('doctor', 'nurse', 'admin', 'patient'), async (req, res, next) => {
   try {
     const filter = {};
     if (req.query.urgency) filter.urgency = req.query.urgency;
@@ -68,7 +68,7 @@ router.get('/analytics', authorize('admin'), async (req, res, next) => {
   try {
     const [totalPatients, emergencyAlerts, pendingRequests, handledRequests] =
       await Promise.all([
-        Patient.countDocuments(),
+        Patient.countDocuments({ isActive: { $ne: false } }),
         CommunicationRequest.countDocuments({ urgency: 'Emergency' }),
         CommunicationRequest.countDocuments({ status: 'pending' }),
         CommunicationRequest.countDocuments({ status: 'handled' }),
@@ -149,7 +149,7 @@ router.post(
   }
 );
 
-router.patch('/:id/handled', authorize('doctor', 'admin'), async (req, res, next) => {
+router.patch('/:id/handled', authorize('doctor', 'nurse', 'admin'), async (req, res, next) => {
   try {
     const request = await CommunicationRequest.findByIdAndUpdate(
       req.params.id,

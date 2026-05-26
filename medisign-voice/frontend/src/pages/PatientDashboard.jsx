@@ -81,6 +81,7 @@ export default function PatientDashboard({ showToast }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const gestureSendingRef = useRef(false);
+  const gestureQueueRef = useRef([]);
 
   const sidebarItems = [
     { to: '/patient', labelKey: 'dashboard', icon: '🏠', end: true },
@@ -103,10 +104,7 @@ export default function PatientDashboard({ showToast }) {
     return () => clearInterval(interval);
   }, [loadData]);
 
-  const submitDetectedGesture = useCallback(async (gesture) => {
-    if (gestureSendingRef.current) return;
-    gestureSendingRef.current = true;
-    setLoading(true);
+  const sendDetectedGesture = useCallback(async (gesture) => {
     setSelectedSigns([gesture.sign]);
     setPreview(null);
     try {
@@ -129,11 +127,27 @@ export default function PatientDashboard({ showToast }) {
       loadData();
     } catch (err) {
       showToast?.(err.message, 'error');
-    } finally {
+    }
+  }, [lang, loadData, showToast]);
+
+  const submitDetectedGesture = useCallback((gesture) => {
+    gestureQueueRef.current.push(gesture);
+    if (gestureSendingRef.current) return;
+
+    gestureSendingRef.current = true;
+    setLoading(true);
+
+    async function sendQueuedGestures() {
+      while (gestureQueueRef.current.length) {
+        const nextGesture = gestureQueueRef.current.shift();
+        await sendDetectedGesture(nextGesture);
+      }
       gestureSendingRef.current = false;
       setLoading(false);
     }
-  }, [lang, loadData, showToast]);
+
+    sendQueuedGestures();
+  }, [sendDetectedGesture]);
 
   useEffect(() => {
     let stream;
@@ -401,7 +415,7 @@ export default function PatientDashboard({ showToast }) {
             {Object.values(LIVE_GESTURES).map((gesture) => (
               <span className="gesture-map" key={gesture.sign}>
                 <span className="gesture-icon" aria-hidden="true">{gesture.icon}</span>
-                <span>{gesture.label}: {t(gesture.sign)}</span>
+                <span>{gesture.label}: {t(gesture.sign)} ({t(gesture.urgency.toLowerCase())})</span>
               </span>
             ))}
           </div>
