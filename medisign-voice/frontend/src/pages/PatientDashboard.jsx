@@ -83,11 +83,6 @@ export default function PatientDashboard({ showToast }) {
   const gestureSendingRef = useRef(false);
   const gestureQueueRef = useRef([]);
 
-  const sidebarItems = [
-    { to: '/patient', labelKey: 'dashboard', icon: '🏠', end: true },
-    { to: '/profile', labelKey: 'profile', icon: '👤' },
-  ];
-
   const loadData = useCallback(async () => {
     try {
       const [reqs, temps] = await Promise.all([api.requests.list(), api.templates.list()]);
@@ -376,7 +371,7 @@ export default function PatientDashboard({ showToast }) {
   };
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <DashboardLayout>
       {emergencyFlash && (
         <div className="emergency-banner pulse-emergency">
           🚨 {t('emergencyAlert')} — {t('emergency')}

@@ -6,7 +6,7 @@ export default function DashboardLayout({ sidebarItems, children }) {
     <div className="dashboard-layout">
       <Navbar />
       <div className="dashboard-body">
-        <Sidebar items={sidebarItems} />
+        {sidebarItems?.length > 0 && <Sidebar items={sidebarItems} />}
         <main className="dashboard-main page-transition">{children}</main>
       </div>
     </div>

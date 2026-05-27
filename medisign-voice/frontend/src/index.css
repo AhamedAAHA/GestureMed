@@ -1216,12 +1216,7 @@ a {
   }
 
   .sidebar {
-    position: static;
-  }
-
-  .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
+    display: none;
   }
 
   .navbar {

@@ -15,19 +15,6 @@ export default function ProfilePage({ showToast }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const sidebarItems = [
-    {
-      to: user?.role === 'patient'
-        ? '/patient'
-        : ['doctor', 'nurse'].includes(user?.role)
-          ? '/doctor'
-          : '/admin',
-      labelKey: 'dashboard',
-      icon: '🏠',
-    },
-    { to: '/profile', labelKey: 'profile', icon: '👤', end: true },
-  ];
-
   useEffect(() => {
     async function load() {
       try {
@@ -90,7 +77,7 @@ export default function ProfilePage({ showToast }) {
   }
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <DashboardLayout>
       <header className="page-header">
         <h1>{t('profile')}</h1>
       </header>

@@ -20,10 +20,6 @@ export default function DoctorDashboard({ showToast }) {
   const pendingRequestIds = useRef(new Set());
   const hasLoadedRequests = useRef(false);
 
-  const sidebarItems = [
-    { to: '/doctor', labelKey: 'dashboard', icon: '🩺', end: true },
-    { to: '/profile', labelKey: 'profile', icon: '👤' },
-  ];
 
   const loadRequests = useCallback(async () => {
     try {
@@ -99,7 +95,7 @@ export default function DoctorDashboard({ showToast }) {
   };
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems}>
+    <DashboardLayout>
       <header className="page-header">
         <h1>{t('liveRequests')}</h1>
         <p>{t('welcomeBack')}, {user?.name}</p>
