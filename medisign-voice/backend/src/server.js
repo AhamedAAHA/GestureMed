@@ -17,10 +17,31 @@ import auditRoutes from './routes/audit.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const envOrigins = [
+  process.env.CLIENT_URL,
+  ...(process.env.CLIENT_URLS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+];
+const allowedOrigins = new Set(
+  [
+    ...envOrigins,
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174',
+  ].filter(Boolean)
+);
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
   })
 );

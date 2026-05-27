@@ -23,7 +23,7 @@ export default function LandingPage() {
         <div className="hero-content glass-card">
           <img
             className="hero-logo"
-            src="/gesturemed-logo.svg"
+            src="/gesturemed-logo-ui-transparent.png"
             alt="GestureMed - AI Powered Care, Human Touch"
           />
           <LanguageSwitcher className="hero-lang" />
