@@ -125,6 +125,15 @@ a {
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.navbar-tools,
+.navbar-links,
+.navbar-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
 }
 
 .nav-link {
@@ -139,6 +148,10 @@ a {
 .nav-user {
   font-size: 0.9rem;
   color: var(--text-muted);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Buttons */
@@ -1200,10 +1213,42 @@ a {
   .navbar {
     flex-direction: column;
     gap: 0.75rem;
+    align-items: stretch;
+    padding: 0.8rem 0.9rem;
   }
 
   .brand-mark {
     width: 145px;
+  }
+
+  .navbar-brand {
+    justify-content: center;
+  }
+
+  .navbar-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    justify-content: stretch;
+  }
+
+  .navbar-tools,
+  .navbar-links,
+  .navbar-user-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .navbar-user-actions .btn {
+    min-width: 120px;
+  }
+
+  .nav-user {
+    max-width: 100%;
+    text-align: center;
+    width: 100%;
   }
 
   .emergency-grid {

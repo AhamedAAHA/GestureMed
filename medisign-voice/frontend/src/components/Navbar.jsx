@@ -29,35 +29,44 @@ export default function Navbar() {
       <Link to="/" className="navbar-brand" aria-label={`${t('appName')} home`}>
         <img className="brand-mark" src="/gesturemed-logo-ui-transparent.png" alt="GestureMed logo" />
       </Link>
+
       <div className="navbar-actions">
-        <LanguageSwitcher />
-        <button type="button" className="btn-icon" onClick={toggleTheme} title={t('theme')}>
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
+        <div className="navbar-tools">
+          <LanguageSwitcher />
+          <button type="button" className="btn-icon" onClick={toggleTheme} title={t('theme')}>
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
+
         {user ? (
           <>
-            {dashPath && (
-              <Link to={dashPath} className="nav-link">
-                {t('dashboard')}
+            <div className="navbar-links">
+              {dashPath && (
+                <Link to={dashPath} className="nav-link">
+                  {t('dashboard')}
+                </Link>
+              )}
+              <Link to="/profile" className="nav-link">
+                {t('profile')}
               </Link>
-            )}
-            <Link to="/profile" className="nav-link">
-              {t('profile')}
-            </Link>
-            <span className="nav-user">{user.name}</span>
-            <button type="button" className="btn btn-ghost" onClick={handleLogout}>
-              {t('logout')}
-            </button>
+            </div>
+
+            <div className="navbar-user-actions">
+              <span className="nav-user">{user.name}</span>
+              <button type="button" className="btn btn-ghost" onClick={handleLogout}>
+                {t('logout')}
+              </button>
+            </div>
           </>
         ) : (
-          <>
+          <div className="navbar-user-actions">
             <Link to="/login" className="btn btn-ghost">
               {t('login')}
             </Link>
             <Link to="/register" className="btn btn-primary">
               {t('register')}
             </Link>
-          </>
+          </div>
         )}
       </div>
     </nav>
