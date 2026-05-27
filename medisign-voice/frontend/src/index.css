@@ -517,11 +517,15 @@ a {
 
 .dashboard-body {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
   padding: 0 1rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
+}
+
+.dashboard-body:has(.sidebar) {
+  grid-template-columns: 220px 1fr;
 }
 
 .sidebar {
