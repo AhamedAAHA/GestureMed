@@ -1237,6 +1237,15 @@ a {
     width: 72px;
   }
 
+  .navbar--auth-page .brand-mark {
+    width: 64px;
+  }
+
+  .navbar--auth-page {
+    padding: 0.3rem 0.45rem;
+    margin: 0.35rem;
+  }
+
   .navbar-brand {
     flex: 0 0 auto;
   }

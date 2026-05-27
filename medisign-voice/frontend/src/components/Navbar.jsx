@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -20,6 +20,8 @@ export default function Navbar() {
   const { t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isAuthPage = pathname === '/login' || pathname === '/register';
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -31,7 +33,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`navbar glass-card${menuOpen ? ' navbar--menu-open' : ''}${user ? ' navbar--signed-in' : ''}`}
+      className={`navbar glass-card${menuOpen ? ' navbar--menu-open' : ''}${user ? ' navbar--signed-in' : ''}${isAuthPage ? ' navbar--auth-page' : ''}`}
     >
       <Link
         to="/"
@@ -49,7 +51,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {!user && (
+      {!user && !isAuthPage && (
         <button
           type="button"
           className="navbar-menu-btn"
@@ -62,25 +64,27 @@ export default function Navbar() {
         </button>
       )}
 
-      <div id="navbar-menu" className="navbar-actions">
-        {user ? (
-          <div className="navbar-user-actions">
-            <span className="nav-user">{user.name}</span>
-            <button type="button" className="btn btn-ghost" onClick={handleLogout}>
-              {t('logout')}
-            </button>
-          </div>
-        ) : (
-          <div className="navbar-user-actions">
-            <Link to="/login" className="btn btn-ghost" onClick={closeMenu}>
-              {t('login')}
-            </Link>
-            <Link to="/register" className="btn btn-primary" onClick={closeMenu}>
-              {t('register')}
-            </Link>
-          </div>
-        )}
-      </div>
+      {(user || !isAuthPage) && (
+        <div id="navbar-menu" className="navbar-actions">
+          {user ? (
+            <div className="navbar-user-actions">
+              <span className="nav-user">{user.name}</span>
+              <button type="button" className="btn btn-ghost" onClick={handleLogout}>
+                {t('logout')}
+              </button>
+            </div>
+          ) : (
+            <div className="navbar-user-actions">
+              <Link to="/login" className="btn btn-ghost" onClick={closeMenu}>
+                {t('login')}
+              </Link>
+              <Link to="/register" className="btn btn-primary" onClick={closeMenu}>
+                {t('register')}
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
