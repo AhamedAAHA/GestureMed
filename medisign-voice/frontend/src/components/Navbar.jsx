@@ -29,17 +29,10 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const dashPath =
-    user?.role === 'patient'
-      ? '/patient'
-      : ['doctor', 'nurse'].includes(user?.role)
-        ? '/doctor'
-        : user?.role === 'admin'
-          ? '/admin'
-          : null;
-
   return (
-    <nav className={`navbar glass-card${menuOpen ? ' navbar--menu-open' : ''}`}>
+    <nav
+      className={`navbar glass-card${menuOpen ? ' navbar--menu-open' : ''}${user ? ' navbar--signed-in' : ''}`}
+    >
       <Link
         to="/"
         className="navbar-brand"
@@ -56,38 +49,27 @@ export default function Navbar() {
         </button>
       </div>
 
-      <button
-        type="button"
-        className="navbar-menu-btn"
-        aria-expanded={menuOpen}
-        aria-controls="navbar-menu"
-        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        {menuOpen ? '✕' : '☰'}
-      </button>
+      {!user && (
+        <button
+          type="button"
+          className="navbar-menu-btn"
+          aria-expanded={menuOpen}
+          aria-controls="navbar-menu"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? '✕' : '☰'}
+        </button>
+      )}
 
       <div id="navbar-menu" className="navbar-actions">
         {user ? (
-          <>
-            <div className="navbar-links">
-              {dashPath && (
-                <Link to={dashPath} className="nav-link" onClick={closeMenu}>
-                  {t('dashboard')}
-                </Link>
-              )}
-              <Link to="/profile" className="nav-link" onClick={closeMenu}>
-                {t('profile')}
-              </Link>
-            </div>
-
-            <div className="navbar-user-actions">
-              <span className="nav-user">{user.name}</span>
-              <button type="button" className="btn btn-ghost" onClick={handleLogout}>
-                {t('logout')}
-              </button>
-            </div>
-          </>
+          <div className="navbar-user-actions">
+            <span className="nav-user">{user.name}</span>
+            <button type="button" className="btn btn-ghost" onClick={handleLogout}>
+              {t('logout')}
+            </button>
+          </div>
         ) : (
           <div className="navbar-user-actions">
             <Link to="/login" className="btn btn-ghost" onClick={closeMenu}>
