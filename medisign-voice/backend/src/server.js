@@ -34,10 +34,26 @@ const allowedOrigins = new Set(
   ].filter(Boolean)
 );
 
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    if (protocol !== 'http:' && protocol !== 'https:') return false;
+    // Cloudflare Pages (production + preview URLs like 69a09805.gesturemed.pages.dev)
+    if (hostname === 'pages.dev' || hostname.endsWith('.pages.dev')) return true;
+  } catch {
+    return false;
+  }
+
+  return false;
+}
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
       return callback(new Error(`CORS blocked for origin: ${origin}`));
